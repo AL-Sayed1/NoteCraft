@@ -127,7 +127,7 @@ def main():
                             "flashcard_range": flashcard_range,
                         }
                     )
-                    st.session_state["f_output"] = output.content
+                    st.session_state["f_output"] = output
 
         if "f_output" in st.session_state:
             output_io = io.StringIO(st.session_state["f_output"])
@@ -172,7 +172,7 @@ def main():
                         "flashcards": st.session_state["f_output"],
                     }
                 )
-                st.session_state["f_output"] = output.content
+                st.session_state["f_output"] = output
                 st.rerun()
 
 

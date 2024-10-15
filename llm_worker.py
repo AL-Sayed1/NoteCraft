@@ -14,7 +14,7 @@ class worker:
     def _initialize_llm(self):
         llm = GoogleGenerativeAI(
             model="gemini-1.5-pro",
-            google_api_key=self.cookies["GROQ_API_KEY"],
+            api_key=self.cookies["GOOGLE_API_KEY"],
         )
         return llm
 
@@ -24,7 +24,7 @@ class worker:
                 [
                     (
                         "system",
-                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in only Markdown text formatting without any other formatting, to add images use this formatting: !!!IMG Description of image!!!
+                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in only Markdown text formatting without any other formatting, to add images use this formatting: !!!IMG Write the description of image here!!!
                         Do it in {word_range} words.""",
                     ),
                     ("user", "{transcript}"),
