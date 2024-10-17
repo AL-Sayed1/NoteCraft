@@ -82,7 +82,7 @@ def main():
 
         usr_suggestion = st.chat_input("Edit the note so that...")
         if usr_suggestion:
-            editor = worker("edit_note", cookies=st.session_state["cookies"])
+            editor = worker(task="edit_note", cookies=st.session_state["cookies"])
             editor_chain = editor.get_chain()
             output = editor_chain.invoke(
                 {"request": usr_suggestion, "note": st.session_state["output"]}

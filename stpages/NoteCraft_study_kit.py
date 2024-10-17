@@ -136,7 +136,7 @@ def main():
         edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
         if usr_suggestion:
             if edit_what == "Note":
-                editor = worker("edit_note", cookies=st.session_state["cookies"])
+                editor = worker(task="edit_note", cookies=st.session_state["cookies"])
                 editor_chain = editor.get_chain()
                 md_output = editor_chain.invoke(
                     {
@@ -155,7 +155,7 @@ def main():
                 )
 
             elif edit_what == "Flashcards":
-                editor = worker("edit_flashcard", cookies=st.session_state["cookies"])
+                editor = worker(task="edit_flashcard", cookies=st.session_state["cookies"])
                 editor_chain = editor.get_chain()
                 output = editor_chain.invoke(
                     {
