@@ -129,7 +129,7 @@ def main():
                             "flashcard_range": flashcard_range,
                         }
                     )
-                    st.session_state["f_output"] = output
+                    st.session_state["f_output"] = output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
 
         if "f_output" in st.session_state:
             output_io = io.StringIO(st.session_state["f_output"])
@@ -176,7 +176,7 @@ def main():
                         "flashcards": st.session_state["f_output"],
                     }
                 )
-                st.session_state["f_output"] = output
+                st.session_state["f_output"] = output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
                 st.rerun()
 
 

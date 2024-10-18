@@ -114,9 +114,11 @@ def main():
                     raw_text = pdf_handler.get_pdf_text(
                         st.session_state["file"], page_range=pages
                     )
+                    
                     st.session_state["md_AI_output"] = note_chain.invoke(
                         {"transcript": raw_text, "word_range": word_range}
                     )
+                    #output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
                     flashcard_output = flashcard_chain.invoke(
                         {
                             "transcript": raw_text,
@@ -124,9 +126,9 @@ def main():
                         }
                     )
                     st.session_state["md_output"] = md_image_format(
-                        st.session_state["md_AI_output"], encoded=True
+                        st.session_state["md_AI_output"] if st.session_state["cookies"]["model"] == "Gemini-1.5" else st.session_state["md_AI_output"].content, encoded=True
                     )
-                    st.session_state["flashcard_output"] = flashcard_output
+                    st.session_state["flashcard_output"] = flashcard_output if st.session_state["cookies"]["model"] == "Gemini-1.5" else flashcard_output.content
                     st.session_state["file_name"] = (
                         os.path.splitext(st.session_state["file"].name)[0]
                         if st.session_state["file"]
@@ -178,7 +180,7 @@ def main():
                         "note": st.session_state["md_AI_output"],
                     }
                 )
-                st.session_state["md_output"] = md_image_format(md_output, encoded=True)
+                st.session_state["md_output"] = md_image_format(md_output if st.session_state["cookies"]["model"] == "Gemini-1.5" else md_output.content, encoded=True)
                 st.session_state["output"] = make_webpage(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
@@ -197,7 +199,7 @@ def main():
                         "flashcards": st.session_state["flashcard_output"],
                     }
                 )
-                st.session_state["flashcard_output"] = output
+                st.session_state["flashcard_output"] = output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
                 st.session_state["output"] = make_webpage(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
