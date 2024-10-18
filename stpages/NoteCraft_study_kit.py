@@ -72,8 +72,12 @@ def main():
             if process:
                 with st.spinner("Processing"):
                     try:
-                        note_chain = worker(cookies=st.session_state["cookies"]).get_chain()
-                        flashcard_chain = worker(task=flashcard_type, cookies=st.session_state["cookies"]).get_chain()
+                        note_chain = worker(
+                            cookies=st.session_state["cookies"]
+                        ).get_chain()
+                        flashcard_chain = worker(
+                            task=flashcard_type, cookies=st.session_state["cookies"]
+                        ).get_chain()
                     except KeyError:
                         st.error(f"The API key is not set.")
                         st.stop()
@@ -144,9 +148,7 @@ def main():
                         "note": st.session_state["md_AI_output"],
                     }
                 )
-                st.session_state["md_output"] = md_image_format(
-                    md_output, encoded=True
-                )
+                st.session_state["md_output"] = md_image_format(md_output, encoded=True)
                 st.session_state["output"] = make_webpage(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
@@ -155,7 +157,9 @@ def main():
                 )
 
             elif edit_what == "Flashcards":
-                editor = worker(task="edit_flashcard", cookies=st.session_state["cookies"])
+                editor = worker(
+                    task="edit_flashcard", cookies=st.session_state["cookies"]
+                )
                 editor_chain = editor.get_chain()
                 output = editor_chain.invoke(
                     {

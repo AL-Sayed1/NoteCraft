@@ -16,10 +16,9 @@ if __name__ == "__main__":
     st.set_page_config(page_title="NoteCraft AI", page_icon="📝", layout="wide")
 
     st.session_state["cookies"] = EncryptedCookieManager(
-    prefix="AL-Sayed1/NOTECRAFT_AI_WEB",
-    password=environ.get("COOKIES_PASSWORD", "COOKIES_PASSWORD"),
-)   
-
+        prefix=environ.get("COOKIES_PREFIX"),
+        password=environ.get("COOKIES_PASSWORD"),
+    )
 
     hide_button_style = """
         <style>

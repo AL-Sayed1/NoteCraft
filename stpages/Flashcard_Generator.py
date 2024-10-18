@@ -113,7 +113,9 @@ def main():
             if process:
                 with st.spinner("Processing"):
                     try:
-                        llm_worker = worker(task=flashcard_type, cookies=st.session_state["cookies"])
+                        llm_worker = worker(
+                            task=flashcard_type, cookies=st.session_state["cookies"]
+                        )
                         chain = llm_worker.get_chain()
                     except KeyError:
                         st.error(f"The API key is not set.")
@@ -164,7 +166,9 @@ def main():
                 label=" ", placeholder="Edit the flashcards so that..."
             )
             if usr_suggestion:
-                editor = worker(task="edit_flashcard", cookies=st.session_state["cookies"])
+                editor = worker(
+                    task="edit_flashcard", cookies=st.session_state["cookies"]
+                )
                 editor_chain = editor.get_chain()
                 output = editor_chain.invoke(
                     {

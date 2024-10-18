@@ -20,27 +20,23 @@ def main():
         # Wait for the component to load and send us current cookies.
         st.stop()
 
-
     if "GOOGLE_API_KEY" in st.session_state["cookies"]:
         st.success(
             "You have already set the API key, you can change it if it doesn't work."
         )
 
-
     GOOGLE_API_KEY = st.text_input(
         "GOOGLE API KEY:",
         type="password",
-        value=st.session_state["cookies"]["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.session_state["cookies"] else "",
+        value=st.session_state["cookies"]["GOOGLE_API_KEY"]
+        if "GOOGLE_API_KEY" in st.session_state["cookies"]
+        else "",
     )
-    
-
 
     if st.button("SAVE") and GOOGLE_API_KEY:
         st.session_state["cookies"]["GOOGLE_API_KEY"] = GOOGLE_API_KEY
         st.session_state["cookies"].save()
-        if (
-            st.session_state["cookies"]["GOOGLE_API_KEY"] == GOOGLE_API_KEY
-        ):
+        if st.session_state["cookies"]["GOOGLE_API_KEY"] == GOOGLE_API_KEY:
             if validate_Google_api_key(GOOGLE_API_KEY):
                 st.success(
                     "Access has been granted successfully! You can now use NoteCraft AI!"
