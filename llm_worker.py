@@ -99,7 +99,7 @@ from io import BytesIO
 
 def md_image_format(md, encoded=False):
     def replace_with_image(match):
-        description = match.group(1)
+        description = match.group(1).strip()
         results = ddgs.images(keywords=description, max_results=1)
         if results:
             image_url = results[0]["image"]
@@ -114,7 +114,7 @@ def md_image_format(md, encoded=False):
                 return f"![{description}]({image_url})"
         return match.group(0)
 
-    pattern = r"!!!IMG(.*?)!!!"
+    pattern = r"!!!\s*IMG\s*(.*?)\s*!!!"
     ddgs = DDGS()
     modified_md = re.sub(pattern, replace_with_image, md)
     return modified_md
