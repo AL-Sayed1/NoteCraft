@@ -1,16 +1,21 @@
 import os
 import streamlit as st
 import requests
-import openai
 
 def validate_openai_api_key(api_key):
-    client = openai.OpenAI(api_key=api_key)
-    try:
-        client.models.list()
-    except openai.AuthenticationError:
-        return False
-    else:
+    url = "https://api.openai.com/v1/models/gpt-4o"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
         return True
+    else:
+        return False
+
 
 def validate_Google_api_key(api_key):
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
