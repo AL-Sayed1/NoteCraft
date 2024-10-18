@@ -5,6 +5,7 @@ import re
 from duckduckgo_search import DDGS
 from langchain_community.chat_models import ChatOpenAI
 
+
 class worker:
     def __init__(self, cookies, task="note"):
         self.cookies = cookies
@@ -15,9 +16,9 @@ class worker:
     def _initialize_llm(self):
         if self.model == "Gemini-1.5":
             llm = GoogleGenerativeAI(
-            model="gemini-1.5-pro",
-            api_key=self.cookies["GOOGLE_API_KEY"],
-        )
+                model="gemini-1.5-pro",
+                api_key=self.cookies["GOOGLE_API_KEY"],
+            )
         elif self.model == "GPT-4o":
             llm = ChatOpenAI(
                 model="gpt-4o",

@@ -1,12 +1,12 @@
 import streamlit as st
 import os
-import pandas as pd
 import io
 import pdf_handler
 from llm_worker import worker
+import csv
 
 
-def display_flashcards(flashcards_df):
+def display_flashcards(flashcards_data):
     headers = [
         "question",
         "questions",
@@ -17,14 +17,19 @@ def display_flashcards(flashcards_df):
         "definition",
         "definitions",
     ]
-    if (
-        flashcards_df.iloc[0, 0].strip().lower() in headers
-        and flashcards_df.iloc[0, 1].strip().lower() in headers
-    ):
-        flashcards_df = flashcards_df.iloc[1:]
 
-    st.session_state.questions = flashcards_df.iloc[:, 0].tolist()
-    st.session_state.answers = flashcards_df.iloc[:, 1].tolist()
+    if not flashcards_data:
+        st.error("Error Generating Flashcards, No Flashcards generated.")
+        return
+
+    if (
+        flashcards_data[0][0].strip().lower() in headers
+        and flashcards_data[0][1].strip().lower() in headers
+    ):
+        flashcards_data = flashcards_data[1:]
+
+    st.session_state.questions = [row[0] for row in flashcards_data if len(row) > 1]
+    st.session_state.answers = [row[1] for row in flashcards_data if len(row) > 1]
 
     if "current_question_index" not in st.session_state:
         st.session_state.current_question_index = 0
@@ -88,14 +93,19 @@ def main():
             st.error("The file is not a valid PDF file nor a CSV file.")
             st.stop()
         elif file_extension == ".csv":
+            flashcards_io = io.StringIO(
+                st.session_state["file"].getvalue().decode("utf-8")
+            )
             try:
-                flashcards_df = pd.read_csv(
-                    st.session_state["file"], sep="\t", header=None
+                flashcards_reader = csv.reader(flashcards_io, delimiter="\t")
+                flashcards_data = list(flashcards_reader)
+            except csv.Error:
+                st.error(
+                    "There was an error generating the flashcards, please try again."
                 )
-            except pd.errors.ParserError:
-                st.error("The file is not a valid CSV file.")
+                st.write(st.session_state["flashcard_output"])
                 st.stop()
-            display_flashcards(flashcards_df)
+            display_flashcards(flashcards_data)
         elif file_extension == ".pdf":
             max_pages = pdf_handler.page_count(st.session_state["file"])
             if max_pages != 1:
@@ -129,19 +139,25 @@ def main():
                             "flashcard_range": flashcard_range,
                         }
                     )
-                    st.session_state["f_output"] = output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
+                    st.session_state["f_output"] = (
+                        output
+                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                        else output.content
+                    )
 
         if "f_output" in st.session_state:
-            output_io = io.StringIO(st.session_state["f_output"])
+            flashcards_io = io.StringIO(st.session_state["f_output"])
             try:
-                flashcards_df = pd.read_csv(output_io, sep="\t", header=None)
-            except pd.errors.ParserError:
+                flashcards_reader = csv.reader(flashcards_io, delimiter="\t")
+                flashcards_data = list(flashcards_reader)
+            except csv.Error:
                 st.error(
                     "There was an error generating the flashcards, please try again."
                 )
-                st.write(st.session_state["f_output"])
+                st.write(st.session_state["flashcard_output"])
                 st.stop()
-            display_flashcards(flashcards_df)
+            display_flashcards(flashcards_data)
+
             pdf_name = os.path.splitext(st.session_state["file"].name)[0]
 
             with st.sidebar:
@@ -177,7 +193,11 @@ def main():
                         "flashcards": st.session_state["f_output"],
                     }
                 )
-                st.session_state["f_output"] = output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
+                st.session_state["f_output"] = (
+                    output
+                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                    else output.content
+                )
                 st.rerun()
 
 

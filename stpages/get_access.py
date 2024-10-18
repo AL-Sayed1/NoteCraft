@@ -2,12 +2,11 @@ import os
 import streamlit as st
 import requests
 
+
 def validate_openai_api_key(api_key):
     url = "https://api.openai.com/v1/models/gpt-4o"
 
-    headers = {
-        "Authorization": f"Bearer {api_key}"
-    }
+    headers = {"Authorization": f"Bearer {api_key}"}
 
     response = requests.get(url, headers=headers)
 
@@ -26,31 +25,35 @@ def validate_Google_api_key(api_key):
     else:
         return False
 
+
 def main():
 
     if not st.session_state["cookies"].ready():
         # Wait for the component to load and send us current cookies.
         st.stop()
 
-    model_options = {
-        "Gemini-1.5": "GOOGLE_API_KEY",
-        "GPT-4o": "OPENAI_API_KEY"
-    }
+    model_options = {"Gemini-1.5": "GOOGLE_API_KEY", "GPT-4o": "OPENAI_API_KEY"}
+
+    model_list = list(model_options.keys())
+    selected_model_key = st.session_state["cookies"].get("model", None)
+
+    if selected_model_key in model_list:
+        selected_index = model_list.index(selected_model_key)
+    else:
+        selected_index = 0
 
     selected_model = st.selectbox(
-        "Select the model you want to access:",
-        list(model_options.keys()),
-        index=list(model_options.keys()).index(st.session_state["cookies"]["model"]) if "model" in st.session_state["cookies"] else 0
+        "Select the model you want to access:", model_list, index=selected_index
     )
 
     api_title = model_options[selected_model]
-    
+
     value = st.session_state["cookies"].get(api_title, "")
 
     API_KEY = st.text_input(
         "GOOGLE API KEY:" if api_title == "GOOGLE_API_KEY" else "OPENAI API KEY:",
         type="password",
-        value=value
+        value=value,
     )
 
     if st.button("SAVE") and API_KEY:
@@ -82,6 +85,7 @@ def main():
     st.caption(
         f"Get the api key from the [Google AI studio](https://aistudio.google.com/)."
     )
+
 
 if __name__ == "__main__":
     main()

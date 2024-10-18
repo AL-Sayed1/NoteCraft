@@ -1,12 +1,9 @@
 import streamlit as st
 from llm_worker import worker, md_image_format
 from pdf_handler import page_count, get_pdf_text
-import streamlit as st
 import os
-import pdf_handler
-from llm_worker import worker
 import base64
-import pandas as pd
+import csv
 import io
 from stpages.Flashcard_Generator import display_flashcards
 
@@ -20,18 +17,8 @@ def get_base64_encoded_pdf(file):
 
 def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
     unwanted_headers = {
-        "Col1": [
-            "question",
-            "questions",
-            "term",
-            "terms",
-        ],
-        "Col2": [
-            "answer",
-            "answers",
-            "definition",
-            "definitions",
-        ],
+        "Col1": ["question", "questions", "term", "terms"],
+        "Col2": ["answer", "answers", "definition", "definitions"],
     }
     rows = flashcards.split("\n")
 
@@ -42,6 +29,21 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
     ):
         rows = rows[1:]
         flashcards = "\n".join(rows)
+
+    if flashcards.startswith("```csv"):
+        flashcards = flashcards[5:].lstrip()
+    elif flashcards.startswith("``` csv"):
+        flashcards = flashcards[6:].lstrip()
+    if flashcards.endswith("```"):
+        flashcards = flashcards[:-3].rstrip()
+    if markdown_content.startswith("```markdown"):
+        markdown_content = markdown_content[11:].lstrip()
+    elif markdown_content.startswith("``` markdown"):
+        markdown_content = markdown_content[12:].lstrip()
+    if markdown_content.endswith("```"):
+        markdown_content = markdown_content[:-3].rstrip()
+    markdown_content = markdown_content.replace("`", r"\`")
+    flashcards = flashcards.replace("`", r"\`")
 
     with open("studykit_template.html", "r") as file:
         html_template = file.read()
@@ -86,7 +88,7 @@ def main():
             st.error("The file is not a valid PDF file.")
             st.stop()
         else:
-            max_pages = pdf_handler.page_count(st.session_state["file"])
+            max_pages = page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
                     pages = st.slider(
@@ -111,14 +113,11 @@ def main():
                     except KeyError:
                         st.error(f"The API key is not set.")
                         st.stop()
-                    raw_text = pdf_handler.get_pdf_text(
-                        st.session_state["file"], page_range=pages
-                    )
-                    
+                    raw_text = get_pdf_text(st.session_state["file"], page_range=pages)
+
                     st.session_state["md_AI_output"] = note_chain.invoke(
                         {"transcript": raw_text, "word_range": word_range}
                     )
-                    #output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
                     flashcard_output = flashcard_chain.invoke(
                         {
                             "transcript": raw_text,
@@ -126,9 +125,16 @@ def main():
                         }
                     )
                     st.session_state["md_output"] = md_image_format(
-                        st.session_state["md_AI_output"] if st.session_state["cookies"]["model"] == "Gemini-1.5" else st.session_state["md_AI_output"].content, encoded=True
+                        st.session_state["md_AI_output"]
+                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                        else st.session_state["md_AI_output"].content,
+                        encoded=True,
                     )
-                    st.session_state["flashcard_output"] = flashcard_output if st.session_state["cookies"]["model"] == "Gemini-1.5" else flashcard_output.content
+                    st.session_state["flashcard_output"] = (
+                        flashcard_output
+                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                        else flashcard_output.content
+                    )
                     st.session_state["file_name"] = (
                         os.path.splitext(st.session_state["file"].name)[0]
                         if st.session_state["file"]
@@ -154,11 +160,13 @@ def main():
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
         flashcards_io = io.StringIO(st.session_state["flashcard_output"])
         try:
-            flashcards_df = pd.read_csv(flashcards_io, sep="\t", header=None)
-        except pd.errors.ParserError:
+            flashcards_reader = csv.reader(flashcards_io, delimiter="\t")
+            flashcards_data = list(flashcards_reader)
+        except csv.Error:
             st.error("There was an error generating the flashcards, please try again.")
+            st.write(st.session_state["flashcard_output"])
             st.stop()
-        display_flashcards(flashcards_df)
+        display_flashcards(flashcards_data)
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],
@@ -174,13 +182,18 @@ def main():
             if edit_what == "Note":
                 editor = worker(task="edit_note", cookies=st.session_state["cookies"])
                 editor_chain = editor.get_chain()
-                md_output = editor_chain.invoke(
+                st.session_state["md_AI_output"] = editor_chain.invoke(
                     {
                         "request": usr_suggestion,
                         "note": st.session_state["md_AI_output"],
                     }
                 )
-                st.session_state["md_output"] = md_image_format(md_output if st.session_state["cookies"]["model"] == "Gemini-1.5" else md_output.content, encoded=True)
+                st.session_state["md_output"] = md_image_format(
+                    st.session_state["md_AI_output"]
+                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                    else st.session_state["md_AI_output"].content,
+                    encoded=True,
+                )
                 st.session_state["output"] = make_webpage(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
@@ -199,7 +212,11 @@ def main():
                         "flashcards": st.session_state["flashcard_output"],
                     }
                 )
-                st.session_state["flashcard_output"] = output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content
+                st.session_state["flashcard_output"] = (
+                    output
+                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                    else output.content
+                )
                 st.session_state["output"] = make_webpage(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],

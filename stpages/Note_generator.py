@@ -62,7 +62,11 @@ def main():
                     output = chain.invoke(
                         {"transcript": raw_text, "word_range": word_range}
                     )
-                    st.session_state["output"] = md_image_format(output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content)
+                    st.session_state["output"] = md_image_format(
+                        output
+                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                        else output.content
+                    )
                     st.session_state["file_name"] = (
                         os.path.splitext(st.session_state["file"].name)[0]
                         if st.session_state["file"]
@@ -87,7 +91,11 @@ def main():
             output = editor_chain.invoke(
                 {"request": usr_suggestion, "note": st.session_state["output"]}
             )
-            st.session_state["output"] = md_image_format(output if st.session_state["cookies"]["model"] == "Gemini-1.5" else output.content)
+            st.session_state["output"] = md_image_format(
+                output
+                if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                else output.content
+            )
             st.rerun()
 
 
