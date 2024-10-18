@@ -10,4 +10,4 @@ pytesseract==0.3.13
 streamlit==1.37.1
 streamlit-option-menu==0.3.13
 duckduckgo-search==6.3.0
-streamlit_cookies_manager==0.2.0
+streamlit-cookies-manager==0.2.0

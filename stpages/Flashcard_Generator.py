@@ -74,7 +74,7 @@ def main():
             value=(5, 20),
             step=5,
             min_value=5,
-            max_value=200,
+            max_value=70,
         )
         flashcard_range = " to ".join(map(str, flashcard_range))
 
@@ -139,6 +139,7 @@ def main():
                 st.error(
                     "There was an error generating the flashcards, please try again."
                 )
+                st.write(st.session_state["f_output"])
                 st.stop()
             display_flashcards(flashcards_df)
             pdf_name = os.path.splitext(st.session_state["file"].name)[0]

@@ -76,7 +76,7 @@ def main():
             value=(5, 20),
             step=5,
             min_value=5,
-            max_value=200,
+            max_value=70,
         )
 
         process = st.button("Process")

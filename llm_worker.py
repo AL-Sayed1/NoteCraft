@@ -58,7 +58,7 @@ class worker:
                         """ You are tasked to make an edit to these flashcards:
                         {flashcards}.
                         
-                        output in the same csv formate with '\t' as the seperator like this: This is a question \t This is the answer. only return the csv data without any other information.""",
+                        output in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information.""",
                     ),
                     ("user", "{request}"),
                 ]
@@ -68,7 +68,7 @@ class worker:
                 [
                     (
                         "system",
-                        "You are tasked with creating flashcards that will help students learn the important terms, proper nouns and concepts in this note. Only make flashcards directly related to the main idea of the note, include as much detail as possible in each flashcard, returning it in a CSV formate with '\t' as the seperator. flashcards are supposed to only include 2 columns: Term \t Definition. make exactly from {flashcard_range} flashcards. only return the csv data without any other information.",
+                        "You are tasked with creating flashcards that will help students learn the important terms, proper nouns and concepts in this note. Only make flashcards directly related to the main idea of the note, include as much detail as possible in each flashcard, returning it in a CSV formate with '\t' as the seperator. each row should include 2 columns: Term \t Definition. make exactly from {flashcard_range} flashcards. only return the csv data without any other information.",
                     ),
                     ("user", "{transcript}"),
                 ]
@@ -78,7 +78,7 @@ class worker:
                 [
                     (
                         "system",
-                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False. return the questions and answers in a CSV formate with '\t' as the seperator. flashcards are supposed to only include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information.",
+                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False. return the questions and answers in a CSV formate with '\t' as the seperator. each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information.",
                     ),
                     ("user", "{transcript}"),
                 ]
