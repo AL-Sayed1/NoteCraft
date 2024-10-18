@@ -18,7 +18,7 @@ class worker:
         )
         return llm
 
-       def _create_prompt(self):
+    def _create_prompt(self):
         if self.task == "note":
             prompt = ChatPromptTemplate.from_messages(
                 [
