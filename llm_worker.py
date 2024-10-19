@@ -32,7 +32,7 @@ class worker:
                 [
                     (
                         "system",
-                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in only Markdown text formatting. To add images use this formatting: <<Write the description of image here>>
+                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in Markdown text formatting. To add images use this formatting: <<Write the description of image here>>
                         Do it in {word_range} words.""",
                     ),
                     ("user", "{transcript}"),
@@ -46,7 +46,7 @@ class worker:
                         """ You are tasked to make an edit to this note:
                         {note}.
 
-                        Only use Markdown text formatting in your output, to add images use this formatting: <<Write the description of image here>>""",
+                        output in Markdown text formatting. to add images use this formatting: <<Write the description of image here>>""",
                     ),
                     ("user", "{request}"),
                 ]
