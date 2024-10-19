@@ -32,7 +32,7 @@ class worker:
                 [
                     (
                         "system",
-                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in only Markdown text formatting without any other formatting, to add images use this formatting: !!!IMG Description of image!!!
+                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in only Markdown text formatting. To add images use this formatting: <<Write the description of image here>>
                         Do it in {word_range} words.""",
                     ),
                     ("user", "{transcript}"),
@@ -46,7 +46,7 @@ class worker:
                         """ You are tasked to make an edit to this note:
                         {note}.
 
-                        Markdown text formatting without any other formatting, to add images use this formatting: !!!IMG Description of image!!!""",
+                        Only use Markdown text formatting in your output, to add images use this formatting: <<Write the description of image here>>""",
                     ),
                     ("user", "{request}"),
                 ]
@@ -115,7 +115,7 @@ def md_image_format(md, encoded=False):
                 return f"![{description}]({image_url})"
         return match.group(0)
 
-    pattern = r"!!!\s*IMG\s*(.*?)\s*!!!"
+    pattern = r"<<\s*(.*?)\s*>>"
     ddgs = DDGS()
     modified_md = re.sub(pattern, replace_with_image, md)
     return modified_md
