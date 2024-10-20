@@ -4,7 +4,8 @@ from os import environ
 import re
 from duckduckgo_search import DDGS
 from langchain_community.chat_models import ChatOpenAI
-
+import base64
+import requests
 
 class worker:
     def __init__(self, cookies, task="note"):
@@ -92,11 +93,6 @@ class worker:
         return chain
 
 
-import re
-import base64
-import requests
-from io import BytesIO
-
 
 def md_image_format(md, encoded=False):
     def replace_with_image(match):
@@ -117,5 +113,5 @@ def md_image_format(md, encoded=False):
 
     pattern = r"<<\s*(.*?)\s*>>"
     ddgs = DDGS()
-    modified_md = re.sub(pattern, replace_with_image, md)
+    modified_md = re.sub(pattern, replace_with_image, md, flags=re.DOTALL)
     return modified_md
