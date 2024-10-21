@@ -5,8 +5,7 @@ import os
 import base64
 import csv
 import io
-from stpages.Flashcard_Generator import display_flashcards
-
+import utils
 
 def get_base64_encoded_pdf(file):
     file.seek(0)
@@ -58,6 +57,7 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
 
 
 def main():
+    utils.universal_setup(page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"])
     st.header("NoteCraft AI - StudyKit")
 
     with st.sidebar:
@@ -166,7 +166,7 @@ def main():
             st.error("There was an error generating the flashcards, please try again.")
             st.write(st.session_state["flashcard_output"])
             st.stop()
-        display_flashcards(flashcards_data)
+        utils.display_flashcards(flashcards_data)
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],

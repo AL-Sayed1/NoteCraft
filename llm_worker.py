@@ -47,7 +47,7 @@ class worker:
                         """ You are tasked to make an edit to this note:
                         {note}.
 
-                        output in Markdown text formatting. to add images use this formatting: <<Write the description of image here>>""",
+                        output in Markdown formatting. to add images use this formatting: <<Write the description of image here>>""",
                     ),
                     ("user", "{request}"),
                 ]

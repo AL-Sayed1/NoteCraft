@@ -3,9 +3,10 @@ import os
 import pdf_handler
 from llm_worker import worker
 from llm_worker import md_image_format
-
+import utils
 
 def main():
+    utils.universal_setup(page_title="Note Generator", page_icon="📝", upload_file_types=["pdf", "md"])
     st.header("NoteCraft AI")
 
     with st.sidebar:

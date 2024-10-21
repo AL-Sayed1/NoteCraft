@@ -1,7 +1,9 @@
 import os
 import streamlit as st
 import requests
-
+from streamlit_cookies_manager import EncryptedCookieManager
+from os import environ
+import utils
 
 def validate_openai_api_key(api_key):
     url = "https://api.openai.com/v1/models/gpt-4o"
@@ -27,7 +29,7 @@ def validate_Google_api_key(api_key):
 
 
 def main():
-
+    utils.universal_setup(page_title="Get Access", page_icon="🔑")
     if not st.session_state["cookies"].ready():
         # Wait for the component to load and send us current cookies.
         st.stop()

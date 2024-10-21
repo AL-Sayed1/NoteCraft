@@ -1,8 +1,11 @@
 import streamlit as st
+from dotenv import load_dotenv
+from utils import universal_setup
+
 
 
 def main():
-    # HTML content
+    universal_setup(page_title="Home", page_icon="🏠")
     html_content = r"""
     <!DOCTYPE html>
     <html lang="en">
@@ -70,6 +73,36 @@ def main():
                 color: inherit;
                 display: block;
             }
+            .studykit-section {
+                margin-top: 50px;
+                padding: 20px;
+                border: 2px solid #000;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+            .studykit-title {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            .studykit-content {
+                font-size: 1.2em;
+                text-align: left;
+            }
+            .feature-section {
+                margin-top: 50px;
+                padding: 20px;
+                border: 2px solid #000;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+            .feature-title {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            .feature-content {
+                font-size: 1.2em;
+                text-align: left;
+            }
         </style>
     </head>
     <body>
@@ -93,12 +126,33 @@ def main():
                     <div class="info-content">Tailor the generated notes and flashcards to your needs.</div>
                 </div>
                 <div class="info-box">
-                    <div class="info-title">Chat with PDF</div>
-                    <div class="info-content">Upload your PDF and ask questions and get instant answers based on the content of your document!</div>
-                </div>
-                <div class="info-box">
                     <div class="info-title">Save Time</div>
                     <div class="info-content">Spend less time making notes and more time studying.</div>
+                </div>
+            </div>
+            <div class="feature-section">
+                <div class="feature-title">Note Generator</div>
+                <div class="feature-content">
+                    Upload a PDF and generate a summarized note of the content. This feature helps you quickly grasp the key points of your document.
+                </div>
+            </div>
+            <div class="feature-section">
+                <div class="feature-title">Flashcard Generator</div>
+                <div class="feature-content">
+                    Upload a PDF and generate flashcards based on the content. This feature aids in quick revision and better retention of information.
+                </div>
+            </div>
+            <div class="studykit-section">
+                <div class="studykit-title">NoteCraft StudyKit</div>
+                <div class="studykit-content">
+                    Create an entire interactive document in HTML which includes:
+                    <ul>
+                        <li>Table of Contents</li>
+                        <li>Notes</li>
+                        <li>Questions</li>
+                        <li>Reference PDF</li>
+                    </ul>
+                    Enhance your study sessions with a comprehensive and interactive study kit.
                 </div>
             </div>
             <div class="more-info">
@@ -109,10 +163,8 @@ def main():
     </body>
     </html>
     """
-
     # Streamlit rendering
     st.markdown(html_content, unsafe_allow_html=True)
-
 
 if __name__ == "__main__":
     main()
