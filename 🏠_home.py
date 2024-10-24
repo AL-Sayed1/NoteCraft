@@ -66,7 +66,7 @@ def main():
                 transition: color 0.3s;
             }
             .more-info div:hover {
-                color: #007BFF;
+                color: #ff4b4b;
             }
             .more-info a {
                 text-decoration: none;

@@ -54,7 +54,7 @@ def main():
                     try:
                         llm_worker = worker(cookies=st.session_state["cookies"])
                         chain = llm_worker.get_chain()
-                    except KeyError:
+                    except (KeyError, UnboundLocalError):
                         st.error(f"The API key is not set.")
                         st.stop()
                     raw_text = pdf_handler.get_pdf_text(

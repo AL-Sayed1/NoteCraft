@@ -109,7 +109,7 @@ def main():
                         flashcard_chain = worker(
                             task=flashcard_type, cookies=st.session_state["cookies"]
                         ).get_chain()
-                    except KeyError:
+                    except (KeyError, UnboundLocalError):
                         st.error(f"The API key is not set.")
                         st.stop()
                     raw_text = get_pdf_text(st.session_state["file"], page_range=pages)
