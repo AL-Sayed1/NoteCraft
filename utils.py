@@ -6,7 +6,7 @@ def universal_setup(page_title="", page_icon="📝", upload_file_types=[]):
     st.set_page_config(page_title=f"NoteCraft AI - {page_title}", page_icon=page_icon, layout="wide")
     hide_button_style = """
     <style>
-    .e16jpq800, .ef3psqc6 {
+    .e16jpq800, .ef3psqc6 ._viewerBadge_nim44_23 {
         display: none;
     }
     </style>
