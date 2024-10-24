@@ -67,7 +67,7 @@ def main():
                         )
                         chain = llm_worker.get_chain()
                     except (KeyError, UnboundLocalError):
-                        st.error(f"The API key is not set.")
+                        st.error("You don't have access to the selected model. [Get access here](/get_access).")
                         st.stop()
                     st.session_state.raw_text = pdf_handler.get_pdf_text(
                         st.session_state["file"], page_range=pages
