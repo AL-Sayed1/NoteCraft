@@ -7,7 +7,7 @@ import utils
 
 def main():
     utils.universal_setup(page_title="Note Generator", page_icon="📝", upload_file_types=["pdf", "md"])
-    st.header("NoteCraft AI")
+    
 
     with st.sidebar:
         word_range = st.slider(

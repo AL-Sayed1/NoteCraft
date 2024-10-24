@@ -5,7 +5,7 @@ from utils import universal_setup
 
 
 def main():
-    universal_setup(page_title="Home", page_icon="🏠")
+    universal_setup(page_icon="🏠")
     html_content = r"""
     <!DOCTYPE html>
     <html lang="en">

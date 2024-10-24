@@ -2,7 +2,7 @@ import streamlit as st
 from os import environ
 from streamlit_cookies_manager import EncryptedCookieManager
 
-def universal_setup(page_title="main", page_icon="📝", upload_file_types=[]):
+def universal_setup(page_title="", page_icon="📝", upload_file_types=[]):
     st.set_page_config(page_title=f"NoteCraft AI - {page_title}", page_icon=page_icon, layout="wide")
     hide_button_style = """
     <style>
@@ -11,6 +11,8 @@ def universal_setup(page_title="main", page_icon="📝", upload_file_types=[]):
     }
     </style>
 """
+    if page_title:
+        st.header(f"NoteCraft AI - {page_title}")
     st.markdown(hide_button_style, unsafe_allow_html=True)
 
     st.session_state["cookies"] = EncryptedCookieManager(

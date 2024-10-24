@@ -58,7 +58,6 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
 
 def main():
     utils.universal_setup(page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"])
-    st.header("NoteCraft AI - StudyKit")
 
     with st.sidebar:
         word_range = st.slider(

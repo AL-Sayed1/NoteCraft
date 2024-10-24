@@ -9,7 +9,6 @@ import utils
 
 def main():
     utils.universal_setup(page_title="Flashcards Generator", page_icon="📄", upload_file_types=["pdf", "csv"])
-    st.header("NoteCraft AI - Flashcards Generator")
     with st.sidebar:
         flashcard_type = st.radio(
             "Flashcard Type", ["Term --> Definition", "Question --> Answer"]
