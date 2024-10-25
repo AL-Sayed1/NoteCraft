@@ -71,7 +71,7 @@ def main():
         4. **Select the flashcards type**: Choose between 'Term --> Definition' or 'Question --> Answer' flashcards.
         5. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate the studykit from.
         6. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
-        7. **Download or Edit**: Once the flashcards are generated, you can download them as a csv file or edit them using the chat input.
+        7. **Download or Edit**: Once the StudyKit is generated, you can download it or edit it using the chat input.
         """)
     with st.sidebar:
         word_range = st.slider(
