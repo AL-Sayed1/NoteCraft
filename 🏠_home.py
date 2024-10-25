@@ -86,8 +86,8 @@ def main():
             .feature-link:hover {
                 color: #ff4b4b;
                 border-color: #ff4b4b;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow effect on hover */
-                text-decoration: none; /* Remove underline on hover */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                text-decoration: nimone;
             }
             .feature-link:hover .feature-title, .feature-link:hover .feature-content {
                 color: #ff4b4b;
@@ -140,17 +140,16 @@ def main():
             <a href="/Flashcard_Generator" class="feature-link">
                 <div class="feature-title">Flashcard Generator</div>
                 <div class="feature-content">
-                    <p>Generate flashcards from your PDF content using AI! Just follow these simple steps:</p>
+                    Generate flashcards from the content of your PDF using AI!
+                    you can choose:
                     <ul>
-                        <li>Upload your PDF</li>
-                        <li>Choose the number of flashcards to generate</li>
+                        <li>Number of flashcards</li>
                         <li>Select the flashcard type:
                             <ul>
                                 <li>Question | Answer</li>
                                 <li>Term | Definition</li>
                             </ul>
                         </li>
-                        <li>Press "Process" and let NoteCraft handle the rest!</li>
                     </ul>
                 </div>
             </a>
@@ -178,7 +177,7 @@ def main():
     </body>
     </html>
     """
-    # Streamlit rendering
+
     st.markdown(html_content, unsafe_allow_html=True)
 
 if __name__ == "__main__":
