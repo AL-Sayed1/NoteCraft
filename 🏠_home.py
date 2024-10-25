@@ -2,8 +2,6 @@ import streamlit as st
 from dotenv import load_dotenv
 from utils import universal_setup
 
-
-
 def main():
     universal_setup(page_icon="🏠")
     html_content = r"""
@@ -59,6 +57,7 @@ def main():
             .more-info {
                 margin-top: 40px;
                 font-size: 1.2em;
+                display: inline-block;
             }
             .more-info div {
                 margin-bottom: 20px;
@@ -71,29 +70,27 @@ def main():
             .more-info a {
                 text-decoration: none;
                 color: inherit;
+                display: inline-block;
+            }
+            .feature-link {
+                text-decoration: none;
+                color: #31333f !important;
                 display: block;
-            }
-            .studykit-section {
-                margin-top: 50px;
-                padding: 20px;
                 border: 2px solid #000;
                 border-radius: 10px;
                 background-color: #f9f9f9;
-            }
-            .studykit-title {
-                font-size: 2em;
-                margin-bottom: 20px;
-            }
-            .studykit-content {
-                font-size: 1.2em;
-                text-align: left;
-            }
-            .feature-section {
+                transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
                 margin-top: 50px;
                 padding: 20px;
-                border: 2px solid #000;
-                border-radius: 10px;
-                background-color: #f9f9f9;
+            }
+            .feature-link:hover {
+                color: #ff4b4b;
+                border-color: #ff4b4b;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow effect on hover */
+                text-decoration: none; /* Remove underline on hover */
+            }
+            .feature-link:hover .feature-title, .feature-link:hover .feature-content {
+                color: #ff4b4b;
             }
             .feature-title {
                 font-size: 2em;
@@ -109,8 +106,7 @@ def main():
         <div class="container">
             <div class="header">NoteCraft, Your Study Companion, Powered by AI</div>
             <div class="description">
-                NoteCraft is an AI-powered tool that can answer your questions, generates notes, and flashcards from uploaded PDFs. <br>
-                Enhance your learning experience with automatically generated study aids.
+                NoteCraft is an AI-powered tool that can generates notes, and flashcards from any PDF! <br>
             </div>
             <div class="info-section">
                 <div class="info-box">
@@ -127,24 +123,24 @@ def main():
                 </div>
                 <div class="info-box">
                     <div class="info-title">Save Time</div>
-                    <div class="info-content">Spend less time making notes and more time studying.</div>
+                    <div class="info-content">Spend less time making notes and flashcards and more time studying.</div>
                 </div>
             </div>
-            <div class="feature-section">
+            <a href="/Note_generator" class="feature-link">
                 <div class="feature-title">Note Generator</div>
                 <div class="feature-content">
                     Upload a PDF and generate a summarized note of the content. This feature helps you quickly grasp the key points of your document.
                 </div>
-            </div>
-            <div class="feature-section">
+            </a>
+            <a href="/Flashcard_Generator" class="feature-link">
                 <div class="feature-title">Flashcard Generator</div>
                 <div class="feature-content">
                     Upload a PDF and generate flashcards based on the content. This feature aids in quick revision and better retention of information.
                 </div>
-            </div>
-            <div class="studykit-section">
-                <div class="studykit-title">NoteCraft StudyKit</div>
-                <div class="studykit-content">
+            </a>
+            <a href="/NoteCraft_study_kit" class="feature-link">
+                <div class="feature-title">NoteCraft StudyKit</div>
+                <div class="feature-content">
                     Create an entire interactive document in HTML which includes:
                     <ul>
                         <li>Table of Contents</li>
@@ -152,12 +148,13 @@ def main():
                         <li>Questions</li>
                         <li>Reference PDF</li>
                     </ul>
-                    Enhance your study sessions with a comprehensive and interactive study kit.
+                    All in one place and works without internet access!
                 </div>
-            </div>
+            </a>
             <div class="more-info">
                 <div>Crafted by Sayed Hashim</div>
-                <div><a href="https://github.com/AL-Sayed1/NoteCraft" target="_blank">View github code</a></div>
+                <div><a href="https://github.com/AL-Sayed1/NoteCraft" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg> View github code</a></div>
             </div>
         </div>
     </body>
