@@ -34,7 +34,7 @@ def main():
         # Wait for the component to load and send us current cookies.
         st.stop()
 
-    model_options = {"Gemini-1.5": "GOOGLE_API_KEY", "GPT-4o": "OPENAI_API_KEY"}
+    model_options = {"Gemini-1.5": "GOOGLE_API_KEY", "GPT-4o-mini": "OPENAI_API_KEY"}
 
     model_list = list(model_options.keys())
     selected_model_key = st.session_state["cookies"].get("model", None)
