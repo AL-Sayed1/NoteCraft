@@ -129,26 +129,44 @@ def main():
             <a href="/Note_generator" class="feature-link">
                 <div class="feature-title">Note Generator</div>
                 <div class="feature-content">
-                    Upload a PDF and generate a summarized note of the content. This feature helps you quickly grasp the key points of your document.
+                    <p>Generate concise notes from your PDF content using AI! Just follow these simple steps:</p>
+                    <ul>
+                        <li>Upload your PDF</li>
+                        <li>Select the desired note length</li>
+                        <li>Press "Process" and let NoteCraft handle the rest!</li>
+                    </ul>
                 </div>
             </a>
             <a href="/Flashcard_Generator" class="feature-link">
                 <div class="feature-title">Flashcard Generator</div>
                 <div class="feature-content">
-                    Upload a PDF and generate flashcards based on the content. This feature aids in quick revision and better retention of information.
+                    <p>Generate flashcards from your PDF content using AI! Just follow these simple steps:</p>
+                    <ul>
+                        <li>Upload your PDF</li>
+                        <li>Choose the number of flashcards to generate</li>
+                        <li>Select the flashcard type:
+                            <ul>
+                                <li>Question | Answer</li>
+                                <li>Term | Definition</li>
+                            </ul>
+                        </li>
+                        <li>Press "Process" and let NoteCraft handle the rest!</li>
+                    </ul>
                 </div>
             </a>
             <a href="/NoteCraft_study_kit" class="feature-link">
                 <div class="feature-title">NoteCraft StudyKit</div>
                 <div class="feature-content">
-                    Create an entire interactive document in HTML which includes:
+                    Generates an entire interactive document which includes:
                     <ul>
                         <li>Table of Contents</li>
-                        <li>Notes</li>
+                        <li>AI-Generated Notes</li>
                         <li>Questions</li>
                         <li>Reference PDF</li>
+                        <li>User Notes</li>
+                        <li>Pomodoro Timer</li>
                     </ul>
-                    All in one place and works without internet access!
+                    All in one place!
                 </div>
             </a>
             <div class="more-info">
