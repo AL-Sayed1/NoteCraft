@@ -20,9 +20,9 @@ class worker:
                 model="gemini-1.5-pro",
                 api_key=self.cookies["GOOGLE_API_KEY"],
             )
-        elif self.model == "GPT-4o":
+        elif self.model == "GPT-4o-mini":
             llm = ChatOpenAI(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 api_key=self.cookies["OPENAI_API_KEY"],
             )
         return llm

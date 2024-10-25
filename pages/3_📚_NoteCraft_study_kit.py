@@ -58,7 +58,21 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
 
 def main():
     utils.universal_setup(page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"])
-
+    if (
+        "md_output" not in st.session_state
+        and "flashcard_output" not in st.session_state
+        and "output" not in st.session_state
+    ):
+        st.markdown("""
+        ### How to Generate Studykit
+        1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
+        2. **Select the word range**: Adjust the slider to set the desired word range for the notes.
+        3. **Select the number of flashcards**: Adjust the slider to set the desired flashcard range.
+        4. **Select the flashcards type**: Choose between 'Term --> Definition' or 'Question --> Answer' flashcards.
+        5. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate the studykit from.
+        6. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
+        7. **Download or Edit**: Once the flashcards are generated, you can download them as a csv file or edit them using the chat input.
+        """)
     with st.sidebar:
         word_range = st.slider(
             "Select the word range of the note:",
