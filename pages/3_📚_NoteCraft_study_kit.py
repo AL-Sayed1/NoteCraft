@@ -183,7 +183,7 @@ def main():
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],
-            file_name=f"{st.session_state['file_name']}.html",
+            file_name=f"{st.session_state['file_name']} - StudyKit.html",
             mime="text/html",
             use_container_width=True,
         )
