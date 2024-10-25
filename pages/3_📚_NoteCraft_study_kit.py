@@ -23,8 +23,8 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
 
     headers = rows[0].split("\t")
     if (
-        headers[0].lower() in unwanted_headers["Col1"]
-        and headers[1].lower() in unwanted_headers["Col2"]
+        headers[0].strip().lower() in unwanted_headers["Col1"]
+        and headers[1].strip().lower() in unwanted_headers["Col2"]
     ):
         rows = rows[1:]
         flashcards = "\n".join(rows)
@@ -44,7 +44,7 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
     markdown_content = markdown_content.replace("`", r"\`")
     flashcards = flashcards.replace("`", r"\`")
 
-    with open("studykit_template.html", "r") as file:
+    with open("studykit-template.min.html", "r") as file:
         html_template = file.read()
 
     html_content = html_template.replace("***markdown_content***", markdown_content)
