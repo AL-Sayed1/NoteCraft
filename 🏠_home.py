@@ -87,7 +87,7 @@ def main():
                 color: #ff4b4b;
                 border-color: #ff4b4b;
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                text-decoration: nimone;
+                text-decoration: none;
             }
             .feature-link:hover .feature-title, .feature-link:hover .feature-content {
                 color: #ff4b4b;
