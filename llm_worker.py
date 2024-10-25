@@ -44,12 +44,11 @@ class worker:
                 [
                     (
                         "system",
-                        """ You are tasked to make an edit to this note:
+                        """ you are tasked to edit this note:
                         {note}.
-
-                        output in Markdown formatting. to add images use this formatting: <<Write the description of image here>>""",
+                        """,
                     ),
-                    ("user", "{request}"),
+                    ("user", "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write the description of image here>>"),
                 ]
             )
         elif self.task == "edit_flashcard":
@@ -59,10 +58,9 @@ class worker:
                         "system",
                         """ You are tasked to make an edit to these flashcards:
                         {flashcards}.
-                        
-                        output in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information.""",
+                        """,
                     ),
-                    ("user", "{request}"),
+                    ("user", "{request}\nOutput in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information."),
                 ]
             )
         elif self.task == "Term --> Definition":
