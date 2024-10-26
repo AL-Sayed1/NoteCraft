@@ -6,7 +6,13 @@ import re
 from pdf2image import convert_from_bytes
 import pytesseract
 from PyPDF2 import PdfReader
-
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_genai import GoogleGenerativeAI
+import re
+from duckduckgo_search import DDGS
+from langchain_community.chat_models import ChatOpenAI
+import base64
+import requests
 
 def universal_setup(page_title="Home", page_icon="📝", upload_file_types=[]):
     st.set_page_config(
@@ -32,14 +38,6 @@ def universal_setup(page_title="Home", page_icon="📝", upload_file_types=[]):
             "upload your file", type=upload_file_types
         )
 
-
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import GoogleGenerativeAI
-import re
-from duckduckgo_search import DDGS
-from langchain_community.chat_models import ChatOpenAI
-import base64
-import requests
 
 
 class LLMAgent:
@@ -271,3 +269,8 @@ def display_flashcards(flashcards):
     if st.session_state.show_answer:
         answer = st.session_state.answers[st.session_state.current_question_index]
         st.write(f"Answer: {answer}")
+
+def parse_studkit(content):
+    note = re.search(r'note=`\^(.*?)`\^', content, re.DOTALL).group(1)
+    flashcards = re.search(r'flashcards=`\^(.*?)`\^', content, re.DOTALL).group(1)
+    return note, flashcards

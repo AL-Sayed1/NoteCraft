@@ -25,6 +25,32 @@
             color: #ff4b4b;
         }
 
+        input[type="file"] {
+            display: block;
+            margin: 20px auto;
+            padding: 8px 16px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff4b4b;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        input[type="file"]::-webkit-file-upload-button {
+            padding: 8px 16px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff4b4b;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background-color: #e04343;
+        }
+
         .toc,
         .markdown,
         .pdf-container,
@@ -188,7 +214,8 @@
             margin: 1em 0;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
@@ -477,12 +504,14 @@
             overflow-x: auto;
             line-height: 1.4;
         }
+
         #notes-page #preview blockquote {
             border-left: 4px solid #ff4b4b;
             margin: 0;
             padding-left: 20px;
             color: #666;
         }
+
         #notes-page #preview img {
             max-width: 100%;
             height: auto;
@@ -520,6 +549,7 @@
         <button id="show-notes">Notes</button>
     </nav>
     <div id="studykit-page">
+        <input type="file" id="upload-studkit" accept=".studkit">
         <div class="toc">
             <h2>Table of Contents</h2>
             <ul id="toc-list"></ul>
@@ -538,8 +568,8 @@
         </div>
         <div class="pdf-container">
             <h2>Reference PDF</h2>
-            <p>StudyKit is generated from pages ***page_range[0]*** to ***page_range[1]***</p>
-            <iframe src="data:application/pdf;base64,***encoded_pdf***" width="100%" height="600px"></iframe>
+            <p id="page-range"></p>
+            <iframe id="pdf-iframe" width="100%" height="600px"></iframe>
         </div>
         <div class="downloads">
             <h2>Downloads</h2>
@@ -590,40 +620,18 @@
     </div>
     <script>
                     document.addEventListener("DOMContentLoaded", function () {
-                        const markdownContent = `***markdown_content***`;
                         const markdownContainer = document.getElementById('markdown-content');
-                        markdownContainer.innerHTML = marked.parse(markdownContent);
                         const tocList = document.getElementById('toc-list');
-                        const headers = markdownContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                        headers.forEach((header, index) => {
-                            const id = header.textContent.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-                            header.id = id;
-                            const listItem = document.createElement('li');
-                            const link = document.createElement('a');
-                            link.href = `#${id}`;
-                            link.textContent = header.textContent;
-                            const icon = document.createElement('div');
-                            icon.classList.add('toc-icon');
-                            listItem.appendChild(icon);
-                            listItem.appendChild(link);
-                            listItem.classList.add(`toc-level-${header.tagName.toLowerCase().substring(1)}`);
-                            tocList.appendChild(listItem);
-                        });
-                        const csvData = `***flashcards***`;
-                        const flashcards = csvData.split('\n').map(row => {
-                            const [term, definition] = row.split('\t');
-                            return {
-                                term,
-                                definition
-                            };
-                        });
-                        let currentIndex = 0;
                         const termElement = document.getElementById('flashcard-term');
                         const definitionElement = document.getElementById('flashcard-definition');
                         const questionNumberElement = document.getElementById('question-number');
                         const showAnswerButton = document.getElementById('show-answer');
                         const prevQuestionButton = document.getElementById('prev-question');
                         const nextQuestionButton = document.getElementById('next-question');
+                        const pdfIframe = document.getElementById('pdf-iframe');
+                        const pageRangeElement = document.getElementById('page-range');
+                        let flashcards = [];
+                        let currentIndex = 0;
 
                         function updateFlashcard() {
                             const flashcard = flashcards[currentIndex];
@@ -633,6 +641,7 @@
                             showAnswerButton.textContent = 'Show Answer';
                             questionNumberElement.textContent = `Question ${currentIndex + 1} out of ${flashcards.length}`;
                         }
+
                         showAnswerButton.addEventListener('click', () => {
                             if (definitionElement.style.display === 'none') {
                                 definitionElement.style.display = 'block';
@@ -642,15 +651,16 @@
                                 showAnswerButton.textContent = 'Show Answer';
                             }
                         });
+
                         prevQuestionButton.addEventListener('click', () => {
                             currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
                             updateFlashcard();
                         });
+
                         nextQuestionButton.addEventListener('click', () => {
                             currentIndex = (currentIndex + 1) % flashcards.length;
                             updateFlashcard();
                         });
-                        updateFlashcard();
 
                         function downloadFile(filename, content, mimeType) {
                             const element = document.createElement('a');
@@ -661,11 +671,71 @@
                             element.click();
                             document.body.removeChild(element);
                         }
+
                         document.getElementById('download-flashcards').addEventListener('click', () => {
+                            const csvData = flashcards.map(f => `${f.term}\t${f.definition}`).join('\n');
                             downloadFile('flashcards.csv', csvData, 'text/csv');
                         });
+
                         document.getElementById('download-notes').addEventListener('click', () => {
+                            const markdownContent = markdownContainer.innerText;
                             downloadFile('notes.md', markdownContent, 'text/markdown');
+                        });
+
+                        document.getElementById('upload-studkit').addEventListener('change', function (event) {
+                            const file = event.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = function (e) {
+                                    const content = e.target.result;
+                                    const noteMatch = content.match(/note=`\^([\s\S]*?)`\^/);
+                                    const flashcardsMatch = content.match(/flashcards=`\^([\s\S]*?)`\^/);
+                                    const encodedPdfMatch = content.match(/encoded_pdf=`\^([\s\S]*?)`\^/);
+                                    const pageRangeMatch = content.match(/page_range=`\^([\s\S]*?)`\^/);
+
+                                    if (noteMatch) {
+                                        const markdownContent = noteMatch[1].trim();
+                                        markdownContainer.innerHTML = marked.parse(markdownContent);
+                                        const headers = markdownContainer.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                                        tocList.innerHTML = '';
+                                        headers.forEach((header, index) => {
+                                            const id = header.textContent.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                                            header.id = id;
+                                            const listItem = document.createElement('li');
+                                            const link = document.createElement('a');
+                                            link.href = `#${id}`;
+                                            link.textContent = header.textContent;
+                                            const icon = document.createElement('div');
+                                            icon.classList.add('toc-icon');
+                                            listItem.appendChild(icon);
+                                            listItem.appendChild(link);
+                                            listItem.classList.add(`toc-level-${header.tagName.toLowerCase().substring(1)}`);
+                                            tocList.appendChild(listItem);
+                                        });
+                                    }
+
+                                    if (flashcardsMatch) {
+                                        const flashcardsData = flashcardsMatch[1].trim().split('\n').map(row => {
+                                            const [term, definition] = row.split('\t');
+                                            return { term, definition };
+                                        });
+                                        flashcards = flashcardsData;
+                                        currentIndex = 0;
+                                        updateFlashcard();
+                                    }
+
+                                    if (encodedPdfMatch) {
+                                        const encodedPdf = encodedPdfMatch[1].trim();
+                                        pdfIframe.src = `data:application/pdf;base64,${encodedPdf}`;
+                                    }
+
+                                    if (pageRangeMatch) {
+                                        const pageRange = pageRangeMatch[1].trim();
+                                        pageRangeElement.textContent = `StudyKit is generated from pages ${pageRange}`;
+                                    }
+                                };
+                                reader.readAsText(file);
+                            }
                         });
 
                         // Navigation script

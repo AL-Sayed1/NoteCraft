@@ -11,26 +11,23 @@ def get_base64_encoded_pdf(file):
     return encoded_pdf
 
 
-def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
+def make_studykit(markdown_content, flashcards, encoded_pdf, page_range):
     flashcards = utils.clean_flashcards(flashcards)
 
     markdown_content = markdown_content.replace("`", r"\`")
 
-    with open("studykit-template.min.html", "r") as file:
-        html_template = file.read()
+    studkit = f"""note=`^{markdown_content}`^
+flashcards=`^{flashcards.strip()}`^
+encoded_pdf=`^{encoded_pdf}`^
 
-    html_content = html_template.replace("***markdown_content***", markdown_content)
-    html_content = html_content.replace("***flashcards***", flashcards.strip())
-    html_content = html_content.replace("***encoded_pdf***", encoded_pdf)
-    html_content = html_content.replace("***page_range[0]***", str(page_range[0]))
-    html_content = html_content.replace("***page_range[1]***", str(page_range[1]))
-
-    return html_content
+page_range=`^{str(page_range[0])} to {str(page_range[1])}`^"""
+    
+    return studkit
 
 
 def main():
     utils.universal_setup(
-        page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"]
+        page_title="StudyKit", page_icon="📚", upload_file_types=["pdf", "studkit"]
     )
     if not st.session_state["file"]:
         st.markdown(
@@ -43,6 +40,7 @@ def main():
         5. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate the studykit from.
         6. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
         7. **Download or Edit**: Once the StudyKit is generated, you can download it or edit it using the chat input.
+        8. **Download StudyKit Viewer**: Download the StudyKit viewer to view the StudyKit!
         """
         )
     with st.sidebar:
@@ -69,10 +67,15 @@ def main():
         process = st.button("Process")
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
-        if file_extension != ".pdf":
+        st.session_state["file_name"] = (
+                        os.path.splitext(st.session_state["file"].name)[0]
+                        if st.session_state["file"]
+                        else "note"
+                    )
+        if file_extension != ".pdf" and file_extension != ".studkit":
             st.error("The file is not a valid PDF file.")
             st.stop()
-        else:
+        elif file_extension == ".pdf":
             max_pages = utils.page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
@@ -126,21 +129,21 @@ def main():
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
                         else flashcard_output.content
                     )
-                    st.session_state["file_name"] = (
-                        os.path.splitext(st.session_state["file"].name)[0]
-                        if st.session_state["file"]
-                        else "note"
-                    )
                     st.session_state["raw_pdf"] = get_base64_encoded_pdf(
                         st.session_state["file"]
                     )
-                    st.session_state["output"] = make_webpage(
+                    st.session_state["output"] = make_studykit(
                         markdown_content=st.session_state["md_output"],
                         flashcards=st.session_state["flashcard_output"],
                         encoded_pdf=st.session_state["raw_pdf"],
                         page_range=pages,
                     )
                     st.success("StudyKit Crafted!")
+        elif file_extension == ".studkit":
+            file_content = st.session_state["file"].getvalue().decode("utf-8")
+            st.session_state["md_output"], st.session_state["flashcard_output"] = flashcards = utils.parse_studkit(file_content)
+            st.session_state["output"] = file_content
+            st.success("StudyKit Loaded!")
 
     if (
         "md_output" in st.session_state
@@ -153,9 +156,17 @@ def main():
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],
-            file_name=f"{st.session_state['file_name']} - StudyKit.html",
-            mime="text/html",
+            file_name=f"{st.session_state['file_name']}.studkit",
+            mime="application/studykit",
             use_container_width=True,
+        )
+        with open("NoteCraft-StudyKit.html", "r") as file:
+            st.download_button(
+                label="Download StudyKit viewer",
+                data=file.read(),
+                file_name="NoteCraft-StudyKit.html",
+                mime="text/html",
+                use_container_width=True,
         )
 
         col1, col2 = st.columns([3, 1])
@@ -167,12 +178,18 @@ def main():
                     task="edit_note", cookies=st.session_state["cookies"]
                 )
                 editor_chain = editor.get_chain()
-                st.session_state["md_AI_output"] = editor_chain.invoke(
-                    {
-                        "request": usr_suggestion,
-                        "note": st.session_state["md_AI_output"],
-                    }
-                )
+                try:
+                    st.session_state["md_AI_output"] = editor_chain.invoke(
+                        {
+                            "request": usr_suggestion,
+                            "note": st.session_state["md_AI_output"],
+                        }
+                    )
+                except KeyError:
+                    st.error(
+                        "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
+                    )
+                    st.stop()
                 st.session_state["md_output"] = utils.md_image_format(
                     (
                         st.session_state["md_AI_output"]
@@ -181,7 +198,7 @@ def main():
                     ),
                     encoded=True,
                 )
-                st.session_state["output"] = make_webpage(
+                st.session_state["output"] = make_studykit(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
                     encoded_pdf=st.session_state["raw_pdf"],
@@ -204,7 +221,7 @@ def main():
                     if st.session_state["cookies"]["model"] == "Gemini-1.5"
                     else output.content
                 )
-                st.session_state["output"] = make_webpage(
+                st.session_state["output"] = make_studykit(
                     markdown_content=st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
                     encoded_pdf=st.session_state["raw_pdf"],
