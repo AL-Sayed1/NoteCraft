@@ -9,7 +9,7 @@ import utils
 
 def main():
     utils.universal_setup(page_title="Flashcards Generator", page_icon="📄", upload_file_types=["pdf", "csv"])
-    if "output" not in st.session_state:
+    if not st.session_state["file"]:
         st.markdown("""
         ### How to Generate Flashcards
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
@@ -42,19 +42,7 @@ def main():
             st.error("The file is not a valid PDF file nor a CSV file.")
             st.stop()
         elif file_extension == ".csv":
-            flashcards_io = io.StringIO(
-                st.session_state["file"].getvalue().decode("utf-8")
-            )
-            try:
-                flashcards_reader = csv.reader(flashcards_io, delimiter="\t")
-                flashcards_data = list(flashcards_reader)
-            except csv.Error:
-                st.error(
-                    "There was an error generating the flashcards, please try again."
-                )
-                st.write(st.session_state["flashcard_output"])
-                st.stop()
-            utils.display_flashcards(flashcards_data)
+            utils.display_flashcards(st.session_state["file"].getvalue().decode("utf-8"))
         elif file_extension == ".pdf":
             max_pages = pdf_handler.page_count(st.session_state["file"])
             if max_pages != 1:
@@ -96,16 +84,7 @@ def main():
 
         if "f_output" in st.session_state:
             flashcards_io = io.StringIO(st.session_state["f_output"])
-            try:
-                flashcards_reader = csv.reader(flashcards_io, delimiter="\t")
-                flashcards_data = list(flashcards_reader)
-            except csv.Error:
-                st.error(
-                    "There was an error generating the flashcards, please try again."
-                )
-                st.write(st.session_state["flashcard_output"])
-                st.stop()
-            utils.display_flashcards(flashcards_data)
+            utils.display_flashcards(st.session_state["f_output"])
 
             pdf_name = os.path.splitext(st.session_state["file"].name)[0]
 

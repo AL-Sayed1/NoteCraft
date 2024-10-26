@@ -1,6 +1,7 @@
 import streamlit as st
 from os import environ
 from streamlit_cookies_manager import EncryptedCookieManager
+import csv
 
 def universal_setup(page_title="Home", page_icon="📝", upload_file_types=[]):
     st.set_page_config(page_title=f"NoteCraft AI - {page_title}", page_icon=page_icon, layout="wide")
@@ -24,27 +25,43 @@ def universal_setup(page_title="Home", page_icon="📝", upload_file_types=[]):
             "upload your file", type=upload_file_types
         )
 
-def display_flashcards(flashcards_data):
-    headers = [
-        "question",
-        "questions",
-        "answer",
-        "answers",
-        "term",
-        "terms",
-        "definition",
-        "definitions",
-    ]
+def clean_flashcards(flashcards):
+    unwanted_headers = {
+        "Col1": ["question", "questions", "term", "terms"],
+        "Col2": ["answer", "answers", "definition", "definitions"],
+    }
+    rows = flashcards.split("\n")
 
-    if not flashcards_data:
+    headers = rows[0].split("\t")
+    if (
+        headers[0].strip().lower() in unwanted_headers["Col1"]
+        and headers[1].strip().lower() in unwanted_headers["Col2"]
+    ):
+        rows = rows[1:]
+        flashcards = "\n".join(rows)
+
+    if flashcards.startswith("```csv"):
+        flashcards = flashcards[len("```csv"):]
+    elif flashcards.startswith("``` csv"):
+        flashcards = flashcards[len("``` csv"):]
+    if flashcards.endswith("```"):
+        flashcards = flashcards[:-len("```")]
+    flashcards = flashcards.replace("`", r"\`")
+
+    return flashcards.strip()
+
+def display_flashcards(flashcards):
+    if not flashcards:
         st.error("Error Generating Flashcards, No Flashcards generated.")
         return
-
-    if (
-        flashcards_data[0][0].strip().lower() in headers
-        and flashcards_data[0][1].strip().lower() in headers
-    ):
-        flashcards_data = flashcards_data[1:]
+    
+    flashcards = clean_flashcards(flashcards)
+    try:
+        flashcards_reader = csv.reader(flashcards.splitlines(), delimiter="\t")
+        flashcards_data = list(flashcards_reader)
+    except csv.Error:
+        st.error("There was an error generating the flashcards, please try again.")
+        st.stop()
 
     st.session_state.questions = [row[0] for row in flashcards_data if len(row) > 1]
     st.session_state.answers = [row[1] for row in flashcards_data if len(row) > 1]

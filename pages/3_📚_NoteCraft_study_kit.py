@@ -13,36 +13,10 @@ def get_base64_encoded_pdf(file):
     encoded_pdf = base64.b64encode(pdf_content).decode("utf-8")
     return encoded_pdf
 
-
 def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
-    unwanted_headers = {
-        "Col1": ["question", "questions", "term", "terms"],
-        "Col2": ["answer", "answers", "definition", "definitions"],
-    }
-    rows = flashcards.split("\n")
+    flashcards = utils.clean_flashcards(flashcards)
 
-    headers = rows[0].split("\t")
-    if (
-        headers[0].strip().lower() in unwanted_headers["Col1"]
-        and headers[1].strip().lower() in unwanted_headers["Col2"]
-    ):
-        rows = rows[1:]
-        flashcards = "\n".join(rows)
-
-    if flashcards.startswith("```csv"):
-        flashcards = flashcards[5:].lstrip()
-    elif flashcards.startswith("``` csv"):
-        flashcards = flashcards[6:].lstrip()
-    if flashcards.endswith("```"):
-        flashcards = flashcards[:-3].rstrip()
-    if markdown_content.startswith("```markdown"):
-        markdown_content = markdown_content[11:].lstrip()
-    elif markdown_content.startswith("``` markdown"):
-        markdown_content = markdown_content[12:].lstrip()
-    if markdown_content.endswith("```"):
-        markdown_content = markdown_content[:-3].rstrip()
     markdown_content = markdown_content.replace("`", r"\`")
-    flashcards = flashcards.replace("`", r"\`")
 
     with open("studykit-template.min.html", "r") as file:
         html_template = file.read()
@@ -58,11 +32,7 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
 
 def main():
     utils.universal_setup(page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"])
-    if (
-        "md_output" not in st.session_state
-        and "flashcard_output" not in st.session_state
-        and "output" not in st.session_state
-    ):
+    if not st.session_state["file"]:
         st.markdown("""
         ### How to Generate Studykit
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
@@ -171,15 +141,7 @@ def main():
     ):
         st.markdown("# Notes:")
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
-        flashcards_io = io.StringIO(st.session_state["flashcard_output"])
-        try:
-            flashcards_reader = csv.reader(flashcards_io, delimiter="\t")
-            flashcards_data = list(flashcards_reader)
-        except csv.Error:
-            st.error("There was an error generating the flashcards, please try again.")
-            st.write(st.session_state["flashcard_output"])
-            st.stop()
-        utils.display_flashcards(flashcards_data)
+        utils.display_flashcards(st.session_state["flashcard_output"])
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],

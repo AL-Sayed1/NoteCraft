@@ -7,7 +7,7 @@ import utils
 
 def main():
     utils.universal_setup(page_title="Note Generator", page_icon="📝", upload_file_types=["pdf", "md"])
-    if "output" not in st.session_state:
+    if not st.session_state["file"]:
         st.markdown("""
         ### How to Generate Notes
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
