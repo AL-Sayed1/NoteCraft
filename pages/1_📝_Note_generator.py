@@ -1,21 +1,23 @@
 import streamlit as st
 import os
-import pdf_handler
-from llm_worker import worker
-from llm_worker import md_image_format
 import utils
 
+
 def main():
-    utils.universal_setup(page_title="Note Generator", page_icon="📝", upload_file_types=["pdf", "md"])
+    utils.universal_setup(
+        page_title="Note Generator", page_icon="📝", upload_file_types=["pdf", "md"]
+    )
     if not st.session_state["file"]:
-        st.markdown("""
+        st.markdown(
+            """
         ### How to Generate Notes
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
         2. **Select the word range**: Adjust the slider to set the desired word range for the notes.
         3. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate notes from.
         4. **Click 'Process'**: Hit the 'Process' button to generate your notes.
         5. **Download or Edit**: Once the notes are generated, you can download them as a Markdown file or edit them using the chat input.
-        """)
+        """
+        )
 
     with st.sidebar:
         word_range = st.slider(
@@ -44,7 +46,7 @@ def main():
                 else "note"
             )
         elif file_extension == ".pdf":
-            max_pages = pdf_handler.page_count(st.session_state["file"])
+            max_pages = utils.page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
                     pages = st.slider(
@@ -60,18 +62,20 @@ def main():
             if process:
                 with st.spinner("Processing"):
                     try:
-                        llm_worker = worker(cookies=st.session_state["cookies"])
-                        chain = llm_worker.get_chain()
+                        worker = utils.LLMAgent(cookies=st.session_state["cookies"])
+                        chain = worker.get_chain()
                     except (KeyError, UnboundLocalError):
-                        st.error("You don't have access to the selected model. [Get access here](/get_access).")
+                        st.error(
+                            "You don't have access to the selected model. [Get access here](/get_access)."
+                        )
                         st.stop()
-                    raw_text = pdf_handler.get_pdf_text(
+                    raw_text = utils.get_pdf_text(
                         st.session_state["file"], page_range=pages
                     )
                     output = chain.invoke(
                         {"transcript": raw_text, "word_range": word_range}
                     )
-                    st.session_state["output"] = md_image_format(
+                    st.session_state["output"] = utils.md_image_format(
                         output
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
                         else output.content
@@ -95,12 +99,14 @@ def main():
 
         usr_suggestion = st.chat_input("Edit the note so that...")
         if usr_suggestion:
-            editor = worker(task="edit_note", cookies=st.session_state["cookies"])
+            editor = utils.LLMAgent(
+                task="edit_note", cookies=st.session_state["cookies"]
+            )
             editor_chain = editor.get_chain()
             output = editor_chain.invoke(
                 {"request": usr_suggestion, "note": st.session_state["output"]}
             )
-            st.session_state["output"] = md_image_format(
+            st.session_state["output"] = utils.md_image_format(
                 output
                 if st.session_state["cookies"]["model"] == "Gemini-1.5"
                 else output.content

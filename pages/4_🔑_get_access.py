@@ -5,6 +5,7 @@ from streamlit_cookies_manager import EncryptedCookieManager
 from os import environ
 import utils
 
+
 def validate_openai_api_key(api_key):
     url = "https://api.openai.com/v1/models/gpt-4o"
 

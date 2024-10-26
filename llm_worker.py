@@ -1,13 +1,13 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
-from os import environ
 import re
 from duckduckgo_search import DDGS
 from langchain_community.chat_models import ChatOpenAI
 import base64
 import requests
 
-class worker:
+
+class llm_worker:
     def __init__(self, cookies, task="note"):
         self.cookies = cookies
         self.model = self.cookies["model"] if "model" in self.cookies else None
@@ -48,7 +48,10 @@ class worker:
                         {note}.
                         """,
                     ),
-                    ("user", "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write the description of image here>>"),
+                    (
+                        "user",
+                        "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write the description of image here>>",
+                    ),
                 ]
             )
         elif self.task == "edit_flashcard":
@@ -60,7 +63,10 @@ class worker:
                         {flashcards}.
                         """,
                     ),
-                    ("user", "{request}\nOutput in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information."),
+                    (
+                        "user",
+                        "{request}\nOutput in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information.",
+                    ),
                 ]
             )
         elif self.task == "Term --> Definition":
@@ -91,23 +97,25 @@ class worker:
         return chain
 
 
-
 def md_image_format(md, encoded=False):
     def replace_with_image(match):
         description = match.group(1).strip()
-        results = ddgs.images(keywords=description, max_results=1)
-        if results:
-            image_url = results[0]["image"]
+        results = ddgs.images(keywords=description, max_results=5)
+        for result in results:
+            image_url = result["image"]
             if encoded:
-                response = requests.get(image_url)
-                if response.status_code == 200:
+                try:
+                    response = requests.get(image_url)
+                    response.raise_for_status()
                     image_data = response.content
                     image_format = image_url.split(".")[-1]
                     base64_image = base64.b64encode(image_data).decode("utf-8")
                     return f"![{description}](data:image/{image_format};base64,{base64_image})"
+                except requests.RequestException as e:
+                    continue
             else:
                 return f"![{description}]({image_url})"
-        return match.group(0)
+        return "\n"
 
     pattern = r"<<\s*(.*?)\s*>>"
     ddgs = DDGS()

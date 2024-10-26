@@ -1,17 +1,15 @@
 import streamlit as st
-from llm_worker import worker, md_image_format
-from pdf_handler import page_count, get_pdf_text
 import os
 import base64
-import csv
-import io
 import utils
+
 
 def get_base64_encoded_pdf(file):
     file.seek(0)
     pdf_content = file.read()
     encoded_pdf = base64.b64encode(pdf_content).decode("utf-8")
     return encoded_pdf
+
 
 def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
     flashcards = utils.clean_flashcards(flashcards)
@@ -31,9 +29,12 @@ def make_webpage(markdown_content, flashcards, encoded_pdf, page_range):
 
 
 def main():
-    utils.universal_setup(page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"])
+    utils.universal_setup(
+        page_title="StudyKit", page_icon="📚", upload_file_types=["pdf"]
+    )
     if not st.session_state["file"]:
-        st.markdown("""
+        st.markdown(
+            """
         ### How to Generate Studykit
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
         2. **Select the word range**: Adjust the slider to set the desired word range for the notes.
@@ -42,7 +43,8 @@ def main():
         5. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate the studykit from.
         6. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
         7. **Download or Edit**: Once the StudyKit is generated, you can download it or edit it using the chat input.
-        """)
+        """
+        )
     with st.sidebar:
         word_range = st.slider(
             "Select the word range of the note:",
@@ -71,7 +73,7 @@ def main():
             st.error("The file is not a valid PDF file.")
             st.stop()
         else:
-            max_pages = page_count(st.session_state["file"])
+            max_pages = utils.page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
                     pages = st.slider(
@@ -87,16 +89,20 @@ def main():
             if process:
                 with st.spinner("Processing"):
                     try:
-                        note_chain = worker(
+                        note_chain = utils.LLMAgent(
                             cookies=st.session_state["cookies"]
                         ).get_chain()
-                        flashcard_chain = worker(
+                        flashcard_chain = utils.LLMAgent(
                             task=flashcard_type, cookies=st.session_state["cookies"]
                         ).get_chain()
                     except (KeyError, UnboundLocalError):
-                        st.error("You don't have access to the selected model. [Get access here](/get_access).")
+                        st.error(
+                            "You don't have access to the selected model. [Get access here](/get_access)."
+                        )
                         st.stop()
-                    raw_text = get_pdf_text(st.session_state["file"], page_range=pages)
+                    raw_text = utils.get_pdf_text(
+                        st.session_state["file"], page_range=pages
+                    )
 
                     st.session_state["md_AI_output"] = note_chain.invoke(
                         {"transcript": raw_text, "word_range": word_range}
@@ -107,10 +113,12 @@ def main():
                             "flashcard_range": flashcard_range,
                         }
                     )
-                    st.session_state["md_output"] = md_image_format(
-                        st.session_state["md_AI_output"]
-                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                        else st.session_state["md_AI_output"].content,
+                    st.session_state["md_output"] = utils.md_image_format(
+                        (
+                            st.session_state["md_AI_output"]
+                            if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                            else st.session_state["md_AI_output"].content
+                        ),
                         encoded=True,
                     )
                     st.session_state["flashcard_output"] = (
@@ -155,7 +163,9 @@ def main():
         edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
         if usr_suggestion:
             if edit_what == "Note":
-                editor = worker(task="edit_note", cookies=st.session_state["cookies"])
+                editor = utils.LLMAgent(
+                    task="edit_note", cookies=st.session_state["cookies"]
+                )
                 editor_chain = editor.get_chain()
                 st.session_state["md_AI_output"] = editor_chain.invoke(
                     {
@@ -163,10 +173,12 @@ def main():
                         "note": st.session_state["md_AI_output"],
                     }
                 )
-                st.session_state["md_output"] = md_image_format(
-                    st.session_state["md_AI_output"]
-                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                    else st.session_state["md_AI_output"].content,
+                st.session_state["md_output"] = utils.md_image_format(
+                    (
+                        st.session_state["md_AI_output"]
+                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                        else st.session_state["md_AI_output"].content
+                    ),
                     encoded=True,
                 )
                 st.session_state["output"] = make_webpage(
@@ -177,7 +189,7 @@ def main():
                 )
 
             elif edit_what == "Flashcards":
-                editor = worker(
+                editor = utils.LLMAgent(
                     task="edit_flashcard", cookies=st.session_state["cookies"]
                 )
                 editor_chain = editor.get_chain()

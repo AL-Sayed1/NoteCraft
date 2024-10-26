@@ -1,16 +1,17 @@
 import streamlit as st
 import os
-import io
-import pdf_handler
-from llm_worker import worker
-import csv
 import utils
 
 
 def main():
-    utils.universal_setup(page_title="Flashcards Generator", page_icon="📄", upload_file_types=["pdf", "csv"])
+    utils.universal_setup(
+        page_title="Flashcards Generator",
+        page_icon="📄",
+        upload_file_types=["pdf", "csv"],
+    )
     if not st.session_state["file"]:
-        st.markdown("""
+        st.markdown(
+            """
         ### How to Generate Flashcards
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
         2. **Select the number of flashcards**: Adjust the slider to set the desired flashcard range.
@@ -18,7 +19,8 @@ def main():
         4. **Choose pages (for PDFs)**: once you uploaded a PDF, select the pages you want to generate flashcards from.
         5. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
         6. **Download or Edit**: Once the flashcards are generated, you can download them as a csv file or edit them using the chat input.
-        """)
+        """
+        )
     with st.sidebar:
         flashcard_type = st.radio(
             "Flashcard Type", ["Term --> Definition", "Question --> Answer"]
@@ -42,9 +44,11 @@ def main():
             st.error("The file is not a valid PDF file nor a CSV file.")
             st.stop()
         elif file_extension == ".csv":
-            utils.display_flashcards(st.session_state["file"].getvalue().decode("utf-8"))
+            utils.display_flashcards(
+                st.session_state["file"].getvalue().decode("utf-8")
+            )
         elif file_extension == ".pdf":
-            max_pages = pdf_handler.page_count(st.session_state["file"])
+            max_pages = utils.page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
                     pages = st.slider(
@@ -60,14 +64,16 @@ def main():
             if process:
                 with st.spinner("Processing"):
                     try:
-                        llm_worker = worker(
+                        worker = utils.LLMAgent(
                             task=flashcard_type, cookies=st.session_state["cookies"]
                         )
-                        chain = llm_worker.get_chain()
+                        chain = worker.get_chain()
                     except (KeyError, UnboundLocalError):
-                        st.error("You don't have access to the selected model. [Get access here](/get_access).")
+                        st.error(
+                            "You don't have access to the selected model. [Get access here](/get_access)."
+                        )
                         st.stop()
-                    st.session_state.raw_text = pdf_handler.get_pdf_text(
+                    st.session_state.raw_text = utils.get_pdf_text(
                         st.session_state["file"], page_range=pages
                     )
                     output = chain.invoke(
@@ -83,7 +89,6 @@ def main():
                     )
 
         if "f_output" in st.session_state:
-            flashcards_io = io.StringIO(st.session_state["f_output"])
             utils.display_flashcards(st.session_state["f_output"])
 
             pdf_name = os.path.splitext(st.session_state["file"].name)[0]
@@ -111,7 +116,7 @@ def main():
                 label=" ", placeholder="Edit the flashcards so that..."
             )
             if usr_suggestion:
-                editor = worker(
+                editor = utils.LLMAgent(
                     task="edit_flashcard", cookies=st.session_state["cookies"]
                 )
                 editor_chain = editor.get_chain()

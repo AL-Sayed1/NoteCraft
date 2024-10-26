@@ -2,6 +2,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from utils import universal_setup
 
+
 def main():
     universal_setup(page_icon="🏠")
     html_content = r"""
@@ -179,6 +180,7 @@ def main():
     """
 
     st.markdown(html_content, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main()
