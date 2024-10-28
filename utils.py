@@ -155,6 +155,11 @@ def md_image_format(md, encoded=False):
     modified_md = re.sub(pattern, replace_with_image, md, flags=re.DOTALL)
     return modified_md
 
+def get_base64_encoded_pdf(file):
+    file.seek(0)
+    pdf_content = file.read()
+    encoded_pdf = base64.b64encode(pdf_content).decode("utf-8")
+    return encoded_pdf
 
 def get_pdf_text(pdf, page_range: tuple, format_text=True):
     text = ""
@@ -194,27 +199,20 @@ def page_count(pdf):
 
 
 def clean_flashcards(flashcards):
-    unwanted_headers = {
-        "Col1": ["question", "questions", "term", "terms"],
-        "Col2": ["answer", "answers", "definition", "definitions"],
-    }
-    rows = flashcards.split("\n")
+    unwanted_headers_col1 = {"question", "questions", "term", "terms"}
+    unwanted_headers_col2 = {"answer", "answers", "definition", "definitions"}
 
-    headers = rows[0].split("\t")
-    if (
-        headers[0].strip().lower() in unwanted_headers["Col1"]
-        and headers[1].strip().lower() in unwanted_headers["Col2"]
-    ):
-        rows = rows[1:]
-        flashcards = "\n".join(rows)
+    pattern = re.compile(r"^\s*(\w+)\s*\t\s*(\w+)\s*\n", re.IGNORECASE)
+    match = pattern.match(flashcards)
 
-    if flashcards.startswith("```csv"):
-        flashcards = flashcards[len("```csv") :]
-    elif flashcards.startswith("``` csv"):
-        flashcards = flashcards[len("``` csv") :]
-    if flashcards.endswith("```"):
-        flashcards = flashcards[: -len("```")]
-    flashcards = flashcards.replace("`", r"\`")
+    if match:
+        col1, col2 = match.groups()
+        if col1.lower() in unwanted_headers_col1 and col2.lower() in unwanted_headers_col2:
+            flashcards = flashcards[match.end():]
+
+    
+    flashcards = re.sub(r"\t+", "\t", flashcards)
+    flashcards = flashcards.strip("`").replace("`", r"\`")
 
     return flashcards.strip()
 

@@ -4,12 +4,6 @@ import base64
 import utils
 
 
-def get_base64_encoded_pdf(file):
-    file.seek(0)
-    pdf_content = file.read()
-    encoded_pdf = base64.b64encode(pdf_content).decode("utf-8")
-    return encoded_pdf
-
 
 def make_studykit(markdown_content, flashcards, encoded_pdf, page_range):
     flashcards = utils.clean_flashcards(flashcards)
@@ -129,7 +123,16 @@ def main():
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
                         else flashcard_output.content
                     )
+<<<<<<< HEAD
                     st.session_state["raw_pdf"] = get_base64_encoded_pdf(
+=======
+                    st.session_state["file_name"] = (
+                        os.path.splitext(st.session_state["file"].name)[0]
+                        if st.session_state["file"]
+                        else "note"
+                    )
+                    st.session_state["raw_pdf"] = utils.get_base64_encoded_pdf(
+>>>>>>> 32f6c8f (fixed flashcards cleaning)
                         st.session_state["file"]
                     )
                     st.session_state["output"] = make_studykit(
