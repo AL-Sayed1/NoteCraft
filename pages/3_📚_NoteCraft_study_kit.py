@@ -123,16 +123,12 @@ def main():
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
                         else flashcard_output.content
                     )
-<<<<<<< HEAD
-                    st.session_state["raw_pdf"] = get_base64_encoded_pdf(
-=======
                     st.session_state["file_name"] = (
                         os.path.splitext(st.session_state["file"].name)[0]
                         if st.session_state["file"]
                         else "note"
                     )
                     st.session_state["raw_pdf"] = utils.get_base64_encoded_pdf(
->>>>>>> 32f6c8f (fixed flashcards cleaning)
                         st.session_state["file"]
                     )
                     st.session_state["output"] = make_studykit(
