@@ -201,6 +201,9 @@ def page_count(pdf):
 def clean_flashcards(flashcards):
     unwanted_headers_col1 = {"question", "questions", "term", "terms"}
     unwanted_headers_col2 = {"answer", "answers", "definition", "definitions"}
+    
+    flashcards = re.sub(r"^\s*```(?:csv\s*)?", "", flashcards, flags=re.IGNORECASE)
+    flashcards = re.sub(r"```\s*$", "", flashcards, flags=re.IGNORECASE)
 
     pattern = re.compile(r"^\s*(\w+)\s*\t\s*(\w+)\s*\n", re.IGNORECASE)
     match = pattern.match(flashcards)
@@ -212,7 +215,6 @@ def clean_flashcards(flashcards):
 
     
     flashcards = re.sub(r"\t+", "\t", flashcards)
-    flashcards = flashcards.strip("`").replace("`", r"\`")
 
     return flashcards.strip()
 
