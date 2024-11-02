@@ -37,6 +37,15 @@ def main():
         8. **Download StudyKit Viewer**: Download the StudyKit viewer to view the StudyKit!
         """
         )
+    with open("NoteCraft-StudyKit.html", "r") as file:
+            st.download_button(
+                label="Download StudyKit viewer",
+                data=file.read(),
+                file_name="NoteCraft-StudyKit.html",
+                mime="text/html",
+                use_container_width=True,
+        )
+
     with st.sidebar:
         word_range = st.slider(
             "Select the word range of the note:",
@@ -154,15 +163,6 @@ def main():
             mime="application/studykit",
             use_container_width=True,
         )
-        with open("NoteCraft-StudyKit.html", "r") as file:
-            st.download_button(
-                label="Download StudyKit viewer",
-                data=file.read(),
-                file_name="NoteCraft-StudyKit.html",
-                mime="text/html",
-                use_container_width=True,
-        )
-
         col1, col2 = st.columns([3, 1])
         usr_suggestion = col1.chat_input("Edit the note so that...")
         edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
