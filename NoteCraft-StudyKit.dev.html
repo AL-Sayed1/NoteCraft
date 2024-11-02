@@ -214,6 +214,24 @@
             margin: 1em 0;
         }
 
+        .pdf-container {
+            background: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #pdf-viewer-container {
+            background: #404040;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #pdf-iframe {
+            background: #fff;
+        }
+
         th,
         td {
             border: 1px solid #ddd;
@@ -535,24 +553,6 @@
             #notes-page .preview {
                 width: 100%;
             }
-        }
-
-        .pdf-container {
-            background: #fff;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #pdf-viewer-container {
-            background: #404040;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        #pdf-iframe {
-            background: #fff;
         }
     </style>
     <script>!function (e, t) { "object" == typeof exports && "undefined" != typeof module ? t(exports) : "function" == typeof define && define.amd ? define(["exports"], t) : t((e = "undefined" != typeof globalThis ? globalThis : e || self).marked = {}) }(this, (function (e) {
