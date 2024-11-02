@@ -1,0 +1,170 @@
+<!-- Add this in the head section -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+
+<!-- Replace the existing pdf-container div with this -->
+<div class="pdf-container">
+    <h2>Reference PDF</h2>
+    <p id="page-range"></p>
+    <div id="pdf-viewer">
+        <div class="pdf-controls">
+            <button id="prev-page">Previous</button>
+            <span>Page: <span id="page-num"></span> / <span id="page-count"></span></span>
+            <button id="next-page">Next</button>
+            <select id="zoom-select">
+                <option value="auto">Auto Zoom</option>
+                <option value="page-fit">Fit Page</option>
+                <option value="page-width">Page Width</option>
+                <option value="0.5">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1">100%</option>
+                <option value="1.25">125%</option>
+                <option value="1.5">150%</option>
+                <option value="2">200%</option>
+            </select>
+        </div>
+        <div id="pdf-canvas-container">
+            <canvas id="pdf-canvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Add this CSS -->
+<style>
+.pdf-container {
+    background: #fff;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-controls {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pdf-controls button {
+    background: #ff4b4b;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pdf-controls button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+#pdf-canvas-container {
+    overflow: auto;
+    background: #525659;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#pdf-canvas {
+    display: block;
+    margin: 0 auto;
+    background: white;
+}
+
+#zoom-select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+</style>
+
+<!-- Replace the PDF loading code in the upload-studkit event listener with this -->
+<script>
+if (encodedPdfMatch) {
+    const encodedPdf = encodedPdfMatch[1].trim();
+    const pdfData = atob(encodedPdf);
+    const pdfBytes = new Uint8Array(pdfData.length);
+    for (let i = 0; i < pdfData.length; i++) {
+        pdfBytes[i] = pdfData.charCodeAt(i);
+    }
+
+    // Initialize PDF.js
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    let pageRendering = false;
+    let pageNumPending = null;
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const scale = 1.5;
+
+    function renderPage(num) {
+        pageRendering = true;
+        pdfDoc.getPage(num).then((page) => {
+            const viewport = page.getViewport({ scale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+
+            const renderTask = page.render(renderContext);
+            renderTask.promise.then(() => {
+                pageRendering = false;
+                if (pageNumPending !== null) {
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
+                }
+            });
+        });
+
+        document.getElementById('page-num').textContent = num;
+    }
+
+    function queueRenderPage(num) {
+        if (pageRendering) {
+            pageNumPending = num;
+        } else {
+            renderPage(num);
+        }
+    }
+
+    function onPrevPage() {
+        if (pageNum <= 1) return;
+        pageNum--;
+        queueRenderPage(pageNum);
+    }
+
+    function onNextPage() {
+        if (pageNum >= pdfDoc.numPages) return;
+        pageNum++;
+        queueRenderPage(pageNum);
+    }
+
+    // Load PDF
+    pdfjsLib.getDocument({ data: pdfBytes }).promise.then((pdf) => {
+        pdfDoc = pdf;
+        document.getElementById('page-count').textContent = pdf.numPages;
+        renderPage(pageNum);
+    });
+
+    // Event listeners
+    document.getElementById('prev-page').addEventListener('click', onPrevPage);
+    document.getElementById('next-page').addEventListener('click', onNextPage);
+    document.getElementById('zoom-select').addEventListener('change', (e) => {
+        const zoomLevel = e.target.value;
+        if (zoomLevel === 'auto' || zoomLevel === 'page-fit' || zoomLevel === 'page-width') {
+            // Handle special zoom levels
+            // You can implement custom scaling logic here
+        } else {
+            scale = parseFloat(zoomLevel);
+            queueRenderPage(pageNum);
+        }
+    });
+}
+</script>
