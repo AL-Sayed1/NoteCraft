@@ -61,20 +61,18 @@ def main():
                     st.write("Only one page in the document")
             if process:
                 with st.spinner("Processing"):
+                    raw_text = utils.get_pdf_text(
+                        st.session_state["file"], page_range=pages
+                    )
                     try:
                         worker = utils.LLMAgent(cookies=st.session_state["cookies"])
-                        chain = worker.get_chain()
+                        output = worker.get_note(raw_text, word_range)
                     except (KeyError, UnboundLocalError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
                         )
                         st.stop()
-                    raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=pages
-                    )
-                    output = chain.invoke(
-                        {"transcript": raw_text, "word_range": word_range}
-                    )
+
                     st.session_state["output"] = utils.md_image_format(
                         output
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
@@ -99,13 +97,8 @@ def main():
 
         usr_suggestion = st.chat_input("Edit the note so that...")
         if usr_suggestion:
-            editor = utils.LLMAgent(
-                task="edit_note", cookies=st.session_state["cookies"]
-            )
-            editor_chain = editor.get_chain()
-            output = editor_chain.invoke(
-                {"request": usr_suggestion, "note": st.session_state["output"]}
-            )
+            
+            output = worker.edit(task="edit_note", text=st.session_state["output"], request=usr_suggestion)
             st.session_state["output"] = utils.md_image_format(
                 output
                 if st.session_state["cookies"]["model"] == "Gemini-1.5"

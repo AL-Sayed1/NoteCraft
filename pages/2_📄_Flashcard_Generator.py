@@ -63,25 +63,17 @@ def main():
                     st.write("Only one page in the document")
             if process:
                 with st.spinner("Processing"):
+                    st.session_state.raw_text = utils.get_pdf_text(
+                        st.session_state["file"], page_range=pages
+                    )
                     try:
-                        worker = utils.LLMAgent(
-                            task=flashcard_type, cookies=st.session_state["cookies"]
-                        )
-                        chain = worker.get_chain()
+                        worker = utils.LLMAgent(cookies=st.session_state["cookies"])
+                        output = worker.get_flashcards(flashcard_range=flashcard_range, task=flashcard_type, transcript=st.session_state.raw_text)
                     except (KeyError, UnboundLocalError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
                         )
                         st.stop()
-                    st.session_state.raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=pages
-                    )
-                    output = chain.invoke(
-                        {
-                            "transcript": st.session_state.raw_text,
-                            "flashcard_range": flashcard_range,
-                        }
-                    )
                     st.session_state["f_output"] = (
                         output
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
@@ -116,16 +108,7 @@ def main():
                 label=" ", placeholder="Edit the flashcards so that..."
             )
             if usr_suggestion:
-                editor = utils.LLMAgent(
-                    task="edit_flashcard", cookies=st.session_state["cookies"]
-                )
-                editor_chain = editor.get_chain()
-                output = editor_chain.invoke(
-                    {
-                        "request": usr_suggestion,
-                        "flashcards": st.session_state["f_output"],
-                    }
-                )
+                output = worker.edit(task="edit_flashcards", request=usr_suggestion, text=st.session_state["f_output"])
                 st.session_state["f_output"] = (
                     output
                     if st.session_state["cookies"]["model"] == "Gemini-1.5"

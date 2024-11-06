@@ -58,10 +58,14 @@ def main():
         type="password",
         value=value,
     )
+    PageWise = st.toggle("PageWise Summaries", value=True if st.session_state["cookies"].get("pageWise", "True") == "True" else False)
+    st.caption("May use more API calls, but can craft notes and flashcards from large ducuments without missing a detail.")
 
     if st.button("SAVE") and API_KEY:
+        
         st.session_state["cookies"][api_title] = API_KEY
         st.session_state["cookies"]["model"] = selected_model
+        st.session_state["cookies"]["pageWise"] = str(PageWise)
         st.session_state["cookies"].save()
         if st.session_state["cookies"][api_title] == API_KEY:
             if api_title == "GOOGLE_API_KEY":
@@ -86,8 +90,9 @@ def main():
             st.error("There was an error while saving the API keys :(")
 
     st.caption(
-        f"Get the api key from the [Google AI studio](https://aistudio.google.com/app/apikey)."
+        f"Get the API key from the [Google AI studio](https://aistudio.google.com/app/apikey)."
     )
+
 
 
 if __name__ == "__main__":

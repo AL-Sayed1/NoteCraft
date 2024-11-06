@@ -95,11 +95,8 @@ def main():
             if process:
                 with st.spinner("Processing"):
                     try:
-                        note_chain = utils.LLMAgent(
+                        worker = utils.LLMAgent(
                             cookies=st.session_state["cookies"]
-                        ).get_chain()
-                        flashcard_chain = utils.LLMAgent(
-                            task=flashcard_type, cookies=st.session_state["cookies"]
                         ).get_chain()
                     except (KeyError, UnboundLocalError):
                         st.error(
@@ -107,18 +104,11 @@ def main():
                         )
                         st.stop()
                     raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=pages
+                        st.session_state["file"], page_range=pages,
                     )
 
-                    st.session_state["md_AI_output"] = note_chain.invoke(
-                        {"transcript": raw_text, "word_range": word_range}
-                    )
-                    flashcard_output = flashcard_chain.invoke(
-                        {
-                            "transcript": raw_text,
-                            "flashcard_range": flashcard_range,
-                        }
-                    )
+                    st.session_state["md_AI_output"] = worker.get_note(raw_text, word_range)
+                    flashcard_output = worker.get_flashcards(flashcard_range=flashcard_range, task=flashcard_type, transcript=st.session_state["md_AI_output"])
                     st.session_state["md_output"] = utils.md_image_format(
                         (
                             st.session_state["md_AI_output"]
@@ -168,17 +158,8 @@ def main():
         edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
         if usr_suggestion:
             if edit_what == "Note":
-                editor = utils.LLMAgent(
-                    task="edit_note", cookies=st.session_state["cookies"]
-                )
-                editor_chain = editor.get_chain()
                 try:
-                    st.session_state["md_AI_output"] = editor_chain.invoke(
-                        {
-                            "request": usr_suggestion,
-                            "note": st.session_state["md_AI_output"],
-                        }
-                    )
+                    st.session_state["md_AI_output"] = worker.edit(task="edit_note", text=st.session_state["md_AI_output"], request=usr_suggestion)
                 except KeyError:
                     st.error(
                         "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
@@ -200,16 +181,8 @@ def main():
                 )
 
             elif edit_what == "Flashcards":
-                editor = utils.LLMAgent(
-                    task="edit_flashcard", cookies=st.session_state["cookies"]
-                )
-                editor_chain = editor.get_chain()
-                output = editor_chain.invoke(
-                    {
-                        "request": usr_suggestion,
-                        "flashcards": st.session_state["flashcard_output"],
-                    }
-                )
+
+                output = worker.edit(task="edit_flashcards", text=st.session_state["flashcard_output"], request=usr_suggestion)
                 st.session_state["flashcard_output"] = (
                     output
                     if st.session_state["cookies"]["model"] == "Gemini-1.5"

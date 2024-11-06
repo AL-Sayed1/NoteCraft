@@ -8,11 +8,13 @@ import pytesseract
 from PyPDF2 import PdfReader
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 import re
 from duckduckgo_search import DDGS
 from langchain_community.chat_models import ChatOpenAI
 import base64
 import requests
+from google.api_core.exceptions import ResourceExhausted
 
 def universal_setup(page_title="Home", page_icon="📝", upload_file_types=[]):
     st.set_page_config(
@@ -41,11 +43,10 @@ def universal_setup(page_title="Home", page_icon="📝", upload_file_types=[]):
 
 
 class LLMAgent:
-    def __init__(self, cookies, task="note"):
+    def __init__(self, cookies):
         self.cookies = cookies
         self.model = self.cookies["model"] if "model" in self.cookies else None
         self.llm = self._initialize_llm()
-        self.task = task
 
     def _initialize_llm(self):
         if self.model == "Gemini-1.5":
@@ -60,75 +61,93 @@ class LLMAgent:
             )
         return llm
 
-    def _create_prompt(self):
-        if self.task == "note":
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in Markdown text formatting. To add images use this formatting: <<Write the description of image here>>
-                        Do it in {word_range} words.""",
-                    ),
-                    ("user", "{transcript}"),
-                ]
-            )
-        elif self.task == "edit_note":
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        """ you are tasked to edit this note:
-                        {note}.
-                        """,
-                    ),
-                    (
-                        "user",
-                        "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write the description of image here>>",
-                    ),
-                ]
-            )
-        elif self.task == "edit_flashcard":
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        """ You are tasked to make an edit to these flashcards:
-                        {flashcards}.
-                        """,
-                    ),
-                    (
-                        "user",
-                        "{request}\nOutput in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information.",
-                    ),
-                ]
-            )
-        elif self.task == "Term --> Definition":
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        "You are tasked with creating flashcards that will help students learn the important terms, proper nouns and concepts in this note. Only make flashcards directly related to the main idea of the note, include as much detail as possible in each flashcard, returning it in a CSV formate with '\t' as the seperator. each row should include 2 columns: Term \t Definition. make exactly from {flashcard_range} flashcards. only return the csv data without any other information.",
-                    ),
-                    ("user", "{transcript}"),
-                ]
-            )
-        elif self.task == "Question --> Answer":
-            prompt = ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False. return the questions and answers in a CSV formate with '\t' as the seperator. each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information.",
-                    ),
-                    ("user", "{transcript}"),
-                ]
-            )
-        return prompt
+    def _get_chain(self, task):
+        task_prompts = {
+            "note": ChatPromptTemplate.from_messages([
+                ("system", """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in Markdown text formatting. To add images use this formatting: <<Write the description of image here>> Do it in {word_range} words."""),
+                ("user", "{transcript}"),
+            ]),
 
-    def get_chain(self):
-        prompt = self._create_prompt()
-        chain = prompt | self.llm
-        return chain
+            "edit_note": ChatPromptTemplate.from_messages([
+                ("system", """ you are tasked to edit this note: {text}."""),
+                ("user", "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write the description of image here>>"),
+            ]),
+            "page_note": ChatPromptTemplate.from_messages([
+                ("system", "Write a brief summary of the following without adding any extra information: {transcript}."),
+            ]),
+            "final_note": ChatPromptTemplate.from_messages([
+                ("system", """Combine the given summaries, include all main ideas in bullets, sub-bullets, tables, or images. Add additional information to help the student better understand the subject. Output in Markdown formatting. To add images use: <<Image description here>>. Do it in {word_range} words."""),
+                ("user", "Summaries: {summaries}"),
+            ]),
+            "edit_flashcard": ChatPromptTemplate.from_messages([
+                ("system", """ You are tasked to make an edit to these flashcards: {text}."""),
+                ("user", "{request}\nOutput in the same csv formate with '\t' as the seperator. each row should contain 2 columns: Question \t Answer. only return the csv data without any other information."),
+            ]),
+            "Term --> Definition": ChatPromptTemplate.from_messages([
+                ("system", "You are tasked with creating flashcards that will help students learn the important terms, proper nouns and concepts in this note. Only make flashcards directly related to the main idea of the note, include as much detail as possible in each flashcard, returning it in a CSV formate with '\t' as the seperator. each row should include 2 columns: Term \t Definition. make exactly from {flashcard_range} flashcards. only return the csv data without any other information."),
+                ("user", "{transcript}"),
+            ]),
+            "Question --> Answer": ChatPromptTemplate.from_messages([
+                ("system", "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False. return the questions and answers in a CSV formate with '\t' as the seperator. each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information."),
+                ("user", "{transcript}"),
+            ]),
+        }
+        return task_prompts.get(task) | self.llm
+    
+    def get_note(self, transcript, word_range):
+        if st.session_state["cookies"]["pageWise"] == "True":
+            page_notes_chain = self._get_chain("page_note")
+            final_note_chain = self._get_chain("final_note")
+            try:
+                summaries = "\n".join(
+                (page_notes_chain.invoke({"transcript": doc})
+                if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                else page_notes_chain.invoke({"transcript": doc}).content)
+                for doc in transcript
+            )
+                self.note = final_note_chain.invoke({"summaries": summaries, "word_range": word_range})
+            except ResourceExhausted:
+                st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
+        else:
+            note_prompt = self._get_chain(self.task)
+            try:
+                self.note = note_prompt.invoke({"transcript": transcript, "word_range": word_range})
+            except ResourceExhausted:
+                st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
+        return self.note
 
+    def get_flashcards(self, flashcard_range, task="Term --> Definition", transcript=None):
+        if st.session_state["cookies"]["pageWise"] == "True":
+            page_notes_chain = self._get_chain("page_note")
+            final_flashcard_chain = self._get_chain(task)
+            try:
+                summaries = "\n".join(
+                (page_notes_chain.invoke({"transcript": doc})
+                if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                else page_notes_chain.invoke({"transcript": doc}).content)
+                for doc in transcript
+                )
+                self.flashcards = final_flashcard_chain.invoke({"transcript": summaries, "flashcard_range": flashcard_range})
+            except ResourceExhausted:
+                st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
+        else:
+            flashcard_chain = self._get_chain(task)
+            if transcript is None:
+                transcript = self.note
+            try:
+                self.flashcards = flashcard_chain.invoke({"transcript": transcript, "flashcard_range": flashcard_range})
+            except ResourceExhausted:
+                st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
+        return self.flashcards
+    
+    def edit(self, task, request, text):
+        edit_chain = self._get_chain(task)
+        try:
+            return edit_chain.invoke({"request": request, "text": text})
+        except ResourceExhausted:
+                st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
+
+            
 
 def md_image_format(md, encoded=False):
     def replace_with_image(match):
@@ -161,8 +180,7 @@ def get_base64_encoded_pdf(file):
     encoded_pdf = base64.b64encode(pdf_content).decode("utf-8")
     return encoded_pdf
 
-def get_pdf_text(pdf, page_range: tuple, format_text=True):
-    text = ""
+def get_pdf_text(pdf, page_range: tuple):
     try:
         pdf_reader = PdfReader(pdf)
     except:
@@ -178,16 +196,39 @@ def get_pdf_text(pdf, page_range: tuple, format_text=True):
         pdf.getvalue(), first_page=first_page, last_page=last_page
     )
 
-    for page_num, image in enumerate(images, start=first_page):
+    page_texts = []
+    for image in images:
         image_text = pytesseract.image_to_string(image)
         if image_text.strip():
-            text += f"PAGE {page_num}: {image_text}"
+            page_texts.append(image_text)
 
-    if format_text:
-        text = re.sub(r"[\s+\n]", " ", text)
-        text = re.sub(r"\f", "", text)
+    text = ' '.join(page_texts).strip()
 
-    return text
+    if st.session_state["cookies"]["pageWise"] == "True":
+        words = text.split()
+        texts = []
+        current_text = ''
+        for word in words:
+            if len(current_text.split()) + 1 < 75:
+                current_text = (current_text + ' ' + word).strip()
+            else:
+                if current_text:
+                    texts.append(current_text.strip())
+                current_text = word
+        if current_text:
+            texts.append(current_text.strip())
+
+        final_texts = []
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1500,
+            chunk_overlap=10,
+            separators=[".", "!", "?", "\n"],
+        )
+        for text in texts:
+            final_texts.extend(text_splitter.split_text(text))
+        return final_texts
+    else:
+        return text
 
 
 def page_count(pdf):
