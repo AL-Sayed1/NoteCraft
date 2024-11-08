@@ -183,8 +183,8 @@ def get_base64_encoded_pdf(file):
 def get_pdf_text(pdf, page_range: tuple):
     try:
         pdf_reader = PdfReader(pdf)
-    except:
-        return "There was a problem reading the pdf, please try."
+    except Exception as e:
+        return f"There was a problem reading the pdf: {str(e)}"
 
     if page_range is None:
         first_page = 1
@@ -202,33 +202,26 @@ def get_pdf_text(pdf, page_range: tuple):
         if image_text.strip():
             page_texts.append(image_text)
 
-    text = ' '.join(page_texts).strip()
-
     if st.session_state["cookies"]["pageWise"] == "True":
-        words = text.split()
-        texts = []
-        current_text = ''
-        for word in words:
-            if len(current_text.split()) + 1 < 75:
-                current_text = (current_text + ' ' + word).strip()
-            else:
-                if current_text:
-                    texts.append(current_text.strip())
-                current_text = word
-        if current_text:
-            texts.append(current_text.strip())
-
         final_texts = []
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1500,
             chunk_overlap=10,
             separators=[".", "!", "?", "\n"],
         )
-        for text in texts:
-            final_texts.extend(text_splitter.split_text(text))
+
+        idx = 0
+        while idx < len(page_texts):
+            page = page_texts[idx]
+            if len(page.split()) < 75 and idx + 1 < len(page_texts):
+                page += " " + page_texts[idx + 1]
+                idx += 1
+            final_texts.extend(text_splitter.split_text(page))
+            idx += 1
+        
         return final_texts
     else:
-        return text
+        return ' '.join(page_texts).strip()
 
 
 def page_count(pdf):

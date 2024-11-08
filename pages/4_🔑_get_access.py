@@ -58,8 +58,7 @@ def main():
         type="password",
         value=value,
     )
-    PageWise = st.toggle("PageWise Summaries", value=st.session_state["cookies"].get("pageWise", "False") == "True")
-    st.caption("May use more API calls, but can craft notes and flashcards from large ducuments without missing a detail.")
+    PageWise = st.toggle("PageWise Summaries (experemental)", value=st.session_state["cookies"].get("pageWise", "False") == "True", help="May use more API calls, but can craft notes and flashcards from large ducuments without missing a detail. **Not recommended for free API keys**.")
 
     if st.button("SAVE") and API_KEY:
         
