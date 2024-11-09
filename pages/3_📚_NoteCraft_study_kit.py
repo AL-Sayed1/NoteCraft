@@ -97,7 +97,7 @@ def main():
                     try:
                         worker = utils.LLMAgent(
                             cookies=st.session_state["cookies"]
-                        ).get_chain()
+                        )
                     except (KeyError, UnboundLocalError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
