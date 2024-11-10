@@ -30,11 +30,9 @@ def main():
             value=(5, 20),
             step=5,
             min_value=5,
-            max_value=70,
+            max_value=60,
         )
         flashcard_range = " to ".join(map(str, flashcard_range))
-
-        st.subheader("Your Document")
 
         process = st.button("Process")
 

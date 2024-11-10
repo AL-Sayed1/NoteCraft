@@ -64,7 +64,7 @@ class LLMAgent:
     def _get_chain(self, task):
         task_prompts = {
             "note": ChatPromptTemplate.from_messages([
-                ("system", """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in Markdown text formatting. To add images use this formatting: <<Write the description of image here>> Do it in {word_range} words."""),
+                ("system", """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in Markdown text formatting. To add images use this formatting: <<Write image search prompt here>>. Do it in {word_range} words."""),
                 ("user", "{transcript}"),
             ]),
 
@@ -73,7 +73,7 @@ class LLMAgent:
                 ("user", "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write the description of image here>>"),
             ]),
             "page_note": ChatPromptTemplate.from_messages([
-                ("system", "Write a brief summary of the following without adding any extra information: {transcript}."),
+                ("system", "Write a brief summary of the following: {transcript}."),
             ]),
             "final_note": ChatPromptTemplate.from_messages([
                 ("system", """Combine the given summaries, include all main ideas in bullets, sub-bullets, tables, or images. Add additional information to help the student better understand the subject. Output in Markdown formatting. To add images use: <<Image description here>>. Do it in {word_range} words."""),

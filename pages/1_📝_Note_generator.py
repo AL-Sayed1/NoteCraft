@@ -22,13 +22,12 @@ def main():
     with st.sidebar:
         word_range = st.slider(
             "Select the word range",
-            value=(200, 300),
+            value=(300, 500),
             step=50,
-            min_value=50,
-            max_value=1000,
+            min_value=100,
+            max_value=1500,
         )
         word_range = " to ".join(map(str, word_range))
-        st.subheader("Your Documents")
 
         process = st.button("Process")
     if st.session_state["file"]:

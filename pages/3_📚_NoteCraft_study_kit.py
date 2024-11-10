@@ -48,11 +48,11 @@ def main():
 
     with st.sidebar:
         word_range = st.slider(
-            "Select the word range of the note:",
-            value=(200, 300),
+            "Select the word range",
+            value=(300, 500),
             step=50,
-            min_value=50,
-            max_value=1000,
+            min_value=100,
+            max_value=1500,
         )
         word_range = " to ".join(map(str, word_range))
         flashcard_type = st.radio(
