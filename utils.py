@@ -109,7 +109,7 @@ class LLMAgent:
             except ResourceExhausted:
                 st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
         else:
-            note_prompt = self._get_chain(self.task)
+            note_prompt = self._get_chain("note")
             try:
                 self.note = note_prompt.invoke({"transcript": transcript, "word_range": word_range})
             except ResourceExhausted:
