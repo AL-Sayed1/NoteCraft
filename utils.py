@@ -73,7 +73,7 @@ class LLMAgent:
                 ("user", "{request}\nOutput in Markdown formatting. to add images use this formatting: <<Write image search prompt here>> use a general description that can be easily found in a Google search, avoid overly specific descriptions."),
             ]),
             "page_note": ChatPromptTemplate.from_messages([
-                ("system", "Write a brief summary of the following: {transcript}."),
+                ("system", "Write a brief summary of the following text, ensuring it does not exceed the word count of the original text and includes only the information present in the text—no additional details here is the text: {transcript}"),
             ]),
             "edit_flashcard": ChatPromptTemplate.from_messages([
                 ("system", """ You are tasked to make an edit to these flashcards: {text}."""),
