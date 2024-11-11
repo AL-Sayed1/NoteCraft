@@ -64,7 +64,7 @@ class LLMAgent:
     def _get_chain(self, task):
         task_prompts = {
             "note": ChatPromptTemplate.from_messages([
-                ("system", """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and easy to understand as possible. Output in Markdown text formatting. To add images use this formatting: <<Write image search prompt here>> use a general description that can be easily found in a Google search, avoid overly specific descriptions. Do it in {word_range} words."""),
+                ("system", """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and as simple as possible using simple terms and giving examples. Output in Markdown text formatting. To add images use this formatting: <<Write image search prompt here>> use a general description that can be easily found in a Google search, avoid overly specific descriptions. Do it in {word_range} words."""),
                 ("user", "{transcript}"),
             ]),
 
@@ -74,10 +74,6 @@ class LLMAgent:
             ]),
             "page_note": ChatPromptTemplate.from_messages([
                 ("system", "Write a brief summary of the following: {transcript}."),
-            ]),
-            "final_note": ChatPromptTemplate.from_messages([
-                ("system", """Combine the given summaries, include all main ideas in bullets, sub-bullets, tables, or images. Add additional information to help the student better understand the subject. Output in Markdown formatting. To add images use: <<Write image search prompt here>> use a general description that can be easily found in a Google search, avoid overly specific descriptions.. Do it in {word_range} words."""),
-                ("user", "Summaries: {summaries}"),
             ]),
             "edit_flashcard": ChatPromptTemplate.from_messages([
                 ("system", """ You are tasked to make an edit to these flashcards: {text}."""),
@@ -97,7 +93,7 @@ class LLMAgent:
     def get_note(self, transcript, word_range):
         if st.session_state["cookies"]["pageWise"] == "True":
             page_notes_chain = self._get_chain("page_note")
-            final_note_chain = self._get_chain("final_note")
+            final_note_chain = self._get_chain("note")
             try:
                 summaries = "\n".join(
                 (page_notes_chain.invoke({"transcript": doc})
@@ -105,7 +101,7 @@ class LLMAgent:
                 else page_notes_chain.invoke({"transcript": doc}).content)
                 for doc in transcript
             )
-                self.note = final_note_chain.invoke({"summaries": summaries, "word_range": word_range})
+                self.note = final_note_chain.invoke({"transcript": summaries, "word_range": word_range})
             except ResourceExhausted:
                 st.error("API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it.")
         else:
