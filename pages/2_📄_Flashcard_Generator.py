@@ -8,6 +8,7 @@ def main():
         page_title="Flashcards Generator",
         page_icon="📄",
         upload_file_types=["pdf", "csv"],
+        worker=True,
     )
     if not st.session_state["file"]:
         st.markdown(
@@ -65,8 +66,11 @@ def main():
                         st.session_state["file"], page_range=pages
                     )
                     try:
-                        worker = utils.LLMAgent(cookies=st.session_state["cookies"])
-                        output = worker.get_flashcards(flashcard_range=flashcard_range, task=flashcard_type, transcript=st.session_state.raw_text)
+                        output = st.session_state["worker"].get_flashcards(
+                            flashcard_range=flashcard_range,
+                            task=flashcard_type,
+                            transcript=st.session_state.raw_text,
+                        )
                     except (KeyError, UnboundLocalError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
@@ -106,7 +110,11 @@ def main():
                 label=" ", placeholder="Edit the flashcards so that..."
             )
             if usr_suggestion:
-                output = worker.edit(task="edit_flashcards", request=usr_suggestion, text=st.session_state["f_output"])
+                output = st.session_state["worker"].edit(
+                    task="edit_flashcards",
+                    request=usr_suggestion,
+                    text=st.session_state["f_output"],
+                )
                 st.session_state["f_output"] = (
                     output
                     if st.session_state["cookies"]["model"] == "Gemini-1.5"

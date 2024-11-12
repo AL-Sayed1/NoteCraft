@@ -58,10 +58,14 @@ def main():
         type="password",
         value=value,
     )
-    PageWise = st.toggle("PageWise Summaries (experemental)", value=st.session_state["cookies"].get("pageWise", "False") == "True", help="May use more API calls, but can craft notes and flashcards from large ducuments without missing a detail. **Not recommended for free API keys**.")
+    PageWise = st.toggle(
+        "PageWise Summaries (experemental)",
+        value=st.session_state["cookies"].get("pageWise", "False") == "True",
+        help="May use more API calls, but can craft notes and flashcards from large ducuments without missing a detail. **Not recommended for free API keys**.",
+    )
 
     if st.button("SAVE") and API_KEY:
-        
+
         st.session_state["cookies"][api_title] = API_KEY
         st.session_state["cookies"]["model"] = selected_model
         st.session_state["cookies"]["pageWise"] = str(PageWise)
@@ -91,7 +95,6 @@ def main():
     st.caption(
         f"Get the API key from the [Google AI studio](https://aistudio.google.com/app/apikey)."
     )
-
 
 
 if __name__ == "__main__":

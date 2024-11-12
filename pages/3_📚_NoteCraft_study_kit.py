@@ -4,7 +4,6 @@ import base64
 import utils
 
 
-
 def make_studykit(markdown_content, flashcards, encoded_pdf, page_range):
     flashcards = utils.clean_flashcards(flashcards)
 
@@ -15,13 +14,16 @@ flashcards=`^{flashcards.strip()}`^
 encoded_pdf=`^{encoded_pdf}`^
 
 page_range=`^{str(page_range[0])} to {str(page_range[1])}`^"""
-    
+
     return studkit
 
 
 def main():
     utils.universal_setup(
-        page_title="StudyKit", page_icon="📚", upload_file_types=["pdf", "studkit"]
+        page_title="StudyKit",
+        page_icon="📚",
+        upload_file_types=["pdf", "studkit"],
+        worker=True,
     )
     if not st.session_state["file"]:
         st.markdown(
@@ -38,12 +40,12 @@ def main():
         """
         )
     with open("NoteCraft-StudyKit.html", "r") as file:
-            st.download_button(
-                label="Download StudyKit viewer",
-                data=file.read(),
-                file_name="NoteCraft-StudyKit.html",
-                mime="text/html",
-                use_container_width=True,
+        st.download_button(
+            label="Download StudyKit viewer",
+            data=file.read(),
+            file_name="NoteCraft-StudyKit.html",
+            mime="text/html",
+            use_container_width=True,
         )
 
     with st.sidebar:
@@ -71,10 +73,10 @@ def main():
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
         st.session_state["file_name"] = (
-                        os.path.splitext(st.session_state["file"].name)[0]
-                        if st.session_state["file"]
-                        else "note"
-                    )
+            os.path.splitext(st.session_state["file"].name)[0]
+            if st.session_state["file"]
+            else "note"
+        )
         if file_extension != ".pdf" and file_extension != ".studkit":
             st.error("The file is not a valid PDF file.")
             st.stop()
@@ -94,21 +96,26 @@ def main():
                     st.write("Only one page in the document")
             if process:
                 with st.spinner("Processing"):
+                    raw_text = utils.get_pdf_text(
+                        st.session_state["file"],
+                        page_range=pages,
+                    )
                     try:
-                        worker = utils.LLMAgent(
-                            cookies=st.session_state["cookies"]
+                        st.session_state["md_AI_output"] = st.session_state[
+                            "worker"
+                        ].get_note(raw_text, word_range)
+                        flashcard_output = st.session_state["worker"].get_flashcards(
+                            flashcard_range=flashcard_range,
+                            task=flashcard_type,
+                            transcript=st.session_state["md_AI_output"],
                         )
+
                     except (KeyError, UnboundLocalError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
                         )
                         st.stop()
-                    raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=pages,
-                    )
 
-                    st.session_state["md_AI_output"] = worker.get_note(raw_text, word_range)
-                    flashcard_output = worker.get_flashcards(flashcard_range=flashcard_range, task=flashcard_type, transcript=st.session_state["md_AI_output"])
                     st.session_state["md_output"] = utils.md_image_format(
                         (
                             st.session_state["md_AI_output"]
@@ -134,7 +141,9 @@ def main():
                     st.success("StudyKit Crafted!")
         elif file_extension == ".studkit":
             file_content = st.session_state["file"].getvalue().decode("utf-8")
-            st.session_state["md_output"], st.session_state["flashcard_output"] = flashcards = utils.parse_studkit(file_content)
+            st.session_state["md_output"], st.session_state["flashcard_output"] = (
+                flashcards
+            ) = utils.parse_studkit(file_content)
             st.session_state["output"] = file_content
             st.success("StudyKit Loaded!")
 
@@ -159,7 +168,11 @@ def main():
         if usr_suggestion:
             if edit_what == "Note":
                 try:
-                    st.session_state["md_AI_output"] = worker.edit(task="edit_note", text=st.session_state["md_AI_output"], request=usr_suggestion)
+                    st.session_state["md_AI_output"] = st.session_state["worker"].edit(
+                        task="edit_note",
+                        text=st.session_state["md_AI_output"],
+                        request=usr_suggestion,
+                    )
                 except KeyError:
                     st.error(
                         "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
@@ -182,7 +195,11 @@ def main():
 
             elif edit_what == "Flashcards":
 
-                output = worker.edit(task="edit_flashcards", text=st.session_state["flashcard_output"], request=usr_suggestion)
+                output = st.session_state["worker"].edit(
+                    task="edit_flashcards",
+                    text=st.session_state["flashcard_output"],
+                    request=usr_suggestion,
+                )
                 st.session_state["flashcard_output"] = (
                     output
                     if st.session_state["cookies"]["model"] == "Gemini-1.5"

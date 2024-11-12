@@ -5,7 +5,10 @@ import utils
 
 def main():
     utils.universal_setup(
-        page_title="Note Generator", page_icon="📝", upload_file_types=["pdf", "md"]
+        page_title="Note Generator",
+        page_icon="📝",
+        upload_file_types=["pdf", "md"],
+        worker=True,
     )
     if not st.session_state["file"]:
         st.markdown(
@@ -64,8 +67,9 @@ def main():
                         st.session_state["file"], page_range=pages
                     )
                     try:
-                        worker = utils.LLMAgent(cookies=st.session_state["cookies"])
-                        output = worker.get_note(raw_text, word_range)
+                        output = st.session_state["worker"].get_note(
+                            raw_text, word_range
+                        )
                     except (KeyError, UnboundLocalError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
@@ -96,8 +100,12 @@ def main():
 
         usr_suggestion = st.chat_input("Edit the note so that...")
         if usr_suggestion:
-            
-            output = worker.edit(task="edit_note", text=st.session_state["output"], request=usr_suggestion)
+
+            output = st.session_state["worker"].edit(
+                task="edit_note",
+                text=st.session_state["output"],
+                request=usr_suggestion,
+            )
             st.session_state["output"] = utils.md_image_format(
                 output
                 if st.session_state["cookies"]["model"] == "Gemini-1.5"
