@@ -42,7 +42,7 @@ def universal_setup(
     )
     if worker and "worker" not in st.session_state:
         st.session_state["worker"] = LLMAgent(st.session_state["cookies"])
-    if upload_file_types and "file" not in st.session_state:
+    if upload_file_types:
         st.session_state["file"] = st.sidebar.file_uploader(
             "upload your file", type=upload_file_types
         )
@@ -95,7 +95,7 @@ class LLMAgent:
                     ),
                 ]
             ),
-            "edit_flashcard": ChatPromptTemplate.from_messages(
+            "edit_flashcards": ChatPromptTemplate.from_messages(
                 [
                     (
                         "system",
@@ -126,7 +126,10 @@ class LLMAgent:
                 ]
             ),
         }
-        return task_prompts.get(task) | self.llm
+        prompt = task_prompts.get(task)
+        if prompt is None:
+            raise ValueError(f"Task '{task}' not found in task_prompts.")
+        return prompt | self.llm
 
     def get_note(self, transcript, word_range):
         if st.session_state["cookies"]["pageWise"] == "True":

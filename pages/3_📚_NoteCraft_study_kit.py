@@ -154,6 +154,7 @@ def main():
     ):
         st.markdown("# Notes:")
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
+        st.markdown("# Flashcards:")
         utils.display_flashcards(st.session_state["flashcard_output"])
         st.download_button(
             label="Download Study kit",
