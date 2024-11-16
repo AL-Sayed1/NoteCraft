@@ -15,7 +15,8 @@ from langchain_community.chat_models import ChatOpenAI
 import base64
 import requests
 from google.api_core.exceptions import ResourceExhausted
-
+import markdown
+import pdfkit
 
 def universal_setup(
     page_title="Home", page_icon="📝", upload_file_types=[], worker=False
@@ -383,3 +384,115 @@ def parse_studkit(content):
     note = re.search(r"note=`\^(.*?)`\^", content, re.DOTALL).group(1)
     flashcards = re.search(r"flashcards=`\^(.*?)`\^", content, re.DOTALL).group(1)
     return note, flashcards
+
+def paper_studykit(markdown_text, header_text, flashcards, cheatsheet=None):
+    styles = """
+body { font-family: serif; }
+h1 { text-align: center; font-size: 36px; }
+a { color: black; }
+.cover_page_title { text-align: center; margin-top: 30%; font-size: 70px; }
+h1, h2, h3, h4, h5, h6 { margin-top: 50px; }
+p, li { font-size: 20px; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f5f5f5; }
+blockquote { border-left: 4px solid #ff4b4b; margin: 0; padding-left: 20px; color: #666; }
+img { max-width: 90%; height: auto; margin: 20px auto; display: block; }
+pre { background: #cfd6e3; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin: 0 40px; }
+code { font-family: 'Courier New', Courier, monospace; }
+.questions li { padding-bottom: 150px; }
+.answers li { margin-bottom: 15px; }
+"""
+    cover_html = f"""
+    <html>
+    <head>
+        <title>Cover Page</title>
+        <style>
+            {styles}
+        </style>
+    </head>
+    <body>
+        <h1 class="cover_page_title">{header_text}</h1>
+        <p style="text-align: center; font-size: 24px;">Crafted by <a href="https://notecraft.streamlit.app/">NoteCraft</a></p>
+    </body>
+    </html>
+    """
+    
+    # Convert Markdown to HTML with extensions
+    html_text = markdown.markdown(markdown_text, extensions=[
+        'tables', 
+        'fenced_code', 
+        'attr_list', 
+        'toc', 
+        'footnotes', 
+        'codehilite', 
+        'meta'
+    ])
+    
+    questions_html = f"""
+    <html>
+    <head>
+        <title>Questions</title>
+        <style>
+            {styles}
+        </style>
+    </head>
+    <body>
+        <h2>Questions</h2>
+        <ol class="questions">
+    """
+    answers_html = f"""
+    <html>
+    <head>
+        <title>Answer Key</title>
+        <style>
+            {styles}
+        </style>
+    </head>
+    <body>
+        <h2>Answer Key</h2>
+        <ol class="answers">
+    """
+
+    flashcards_reader = csv.reader(clean_flashcards(flashcards).splitlines(), delimiter="\t")
+    for row in flashcards_reader:
+        if len(row) == 2:
+            question, answer = row
+            questions_html += f"<li>{question}</li>"
+            answers_html += f"<li>{answer}</li>"
+        else:
+            questions_html += f"<li>Invalid question format: {' '.join(row)}</li>"
+            answers_html += f"<li>Invalid answer format: {' '.join(row)}</li>"
+    
+    questions_html += "</ol></body></html>"
+    answers_html += "</ol></body></html>"
+    
+    # Convert cheatsheet markdown to HTML if it is not None
+    cheatsheet_html = ""
+    if cheatsheet:
+        cheatsheet_html = markdown.markdown(cheatsheet, extensions=[
+            'tables', 
+            'fenced_code', 
+            'attr_list', 
+            'toc', 
+            'footnotes', 
+            'codehilite', 
+            'meta'
+        ])
+        cheatsheet_html = f"<div style='page-break-after: always;'></div>{cheatsheet_html}"
+    
+    # Combine all HTML parts
+    full_html = (
+        cover_html + 
+        "<div style='page-break-after: always;'></div>" + 
+        html_text + 
+        "<div style='page-break-after: always;'></div>" + 
+        questions_html + 
+        "<div style='page-break-after: always;'></div>" + 
+        answers_html + 
+        cheatsheet_html
+    )
+    
+    # Convert HTML to PDF
+    pdf_data = pdfkit.from_string(full_html, False)
+    return pdf_data

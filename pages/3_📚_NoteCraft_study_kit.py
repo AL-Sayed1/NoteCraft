@@ -163,6 +163,13 @@ def main():
             mime="application/studykit",
             use_container_width=True,
         )
+        st.download_button(
+            label="Download Paper Studykit (PDF)",
+            data=utils.paper_studykit(markdown_text=st.session_state["md_output"], header_text=st.session_state['file_name'], flashcards=st.session_state["flashcard_output"]),
+            file_name=f"{st.session_state['file_name']}.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
         col1, col2 = st.columns([3, 1])
         usr_suggestion = col1.chat_input("Edit the note so that...")
         edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
