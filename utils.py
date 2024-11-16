@@ -254,15 +254,23 @@ def get_pdf_text(pdf, page_range: tuple):
     else:
         first_page, last_page = page_range
 
-    images = convert_from_bytes(
-        pdf.getvalue(), first_page=first_page, last_page=last_page
-    )
-
     page_texts = []
-    for image in images:
-        image_text = pytesseract.image_to_string(image)
-        if image_text.strip():
-            page_texts.append(image_text)
+    for page_num in range(first_page - 1, last_page):
+        page = pdf_reader.pages[page_num]
+        if '/XObject' in page['/Resources']:
+            xObject = page['/Resources']['/XObject'].get_object()
+            if any(xObject[obj]['/Subtype'] == '/Image' for obj in xObject):
+                images = convert_from_bytes(
+                    pdf.getvalue(), first_page=page_num + 1, last_page=page_num + 1
+                )
+                for image in images:
+                    image_text = pytesseract.image_to_string(image)
+                    if image_text.strip():
+                        page_texts.append(image_text + "\n")
+            else:
+                page_texts.append(page.extract_text())
+        else:
+            page_texts.append(page.extract_text())
 
     if st.session_state["cookies"]["pageWise"] == "True":
         final_texts = []
@@ -284,7 +292,6 @@ def get_pdf_text(pdf, page_range: tuple):
         return final_texts
     else:
         return " ".join(page_texts).strip()
-
 
 def page_count(pdf):
     try:
