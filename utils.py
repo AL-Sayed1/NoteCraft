@@ -65,6 +65,9 @@ class LLMAgent:
                 model="gpt-4o-mini",
                 api_key=self.cookies["OPENAI_API_KEY"],
             )
+        else:
+            st.write(f"Please make sure to select a model in the get access page, and you have set a valid API key.")
+            st.stop()
         return llm
 
     def _get_chain(self, task):
