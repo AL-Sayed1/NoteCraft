@@ -15,7 +15,7 @@ pip install -r requirements.txt
 For Debian-based systems, run:
 
 ```bash
-sudo apt install tesseract-ocr poppler-utils
+sudo apt install tesseract-ocr poppler-utils wkhtmltopdf
 ```
 
 ### 3. Run the application:
