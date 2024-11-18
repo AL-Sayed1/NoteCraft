@@ -57,6 +57,7 @@ def main():
             max_value=1500,
         )
         word_range = " to ".join(map(str, word_range))
+        images = st.checkbox("Include images in the notes", value=True)
         flashcard_type = st.radio(
             "Flashcard Type", ["Term --> Definition", "Question --> Answer"]
         )
@@ -103,11 +104,10 @@ def main():
                     try:
                         st.session_state["md_AI_output"] = st.session_state[
                             "worker"
-                        ].get_note(raw_text, word_range)
+                        ].get_note(raw_text, word_range, images)
                         flashcard_output = st.session_state["worker"].get_flashcards(
                             flashcard_range=flashcard_range,
-                            task=flashcard_type,
-                            transcript=st.session_state["md_AI_output"],
+                            task=flashcard_type
                         )
 
                     except (KeyError, UnboundLocalError):

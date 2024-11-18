@@ -31,7 +31,7 @@ def main():
             max_value=1500,
         )
         word_range = " to ".join(map(str, word_range))
-
+        images = st.checkbox("Include images in the notes", value=True)
         process = st.button("Process")
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
@@ -68,7 +68,7 @@ def main():
                     )
                     try:
                         output = st.session_state["worker"].get_note(
-                            raw_text, word_range
+                            raw_text, word_range, images
                         )
                     except (KeyError, UnboundLocalError):
                         st.error(

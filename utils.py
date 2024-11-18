@@ -41,6 +41,8 @@ def universal_setup(
         prefix=environ.get("COOKIES_PREFIX"),
         password=environ.get("COOKIES_PASSWORD"),
     )
+    if not st.session_state["cookies"].ready():
+        st.stop()
     if worker and "worker" not in st.session_state:
         st.session_state["worker"] = LLMAgent(st.session_state["cookies"])
     if upload_file_types:
@@ -73,11 +75,20 @@ class LLMAgent:
 
     def _get_chain(self, task):
         task_prompts = {
+            "note_w_images": ChatPromptTemplate.from_messages(
+                [
+                    (
+                        "system",
+                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Strictly base your notes on the provided information, without adding any external information. Try to make it clear and as simple as possible using simple terms and giving examples. Output in Markdown text formatting. To add images use this formatting: <<image search prompt>> use a general description that can be easily found in a Google search, avoid overly specific descriptions. Do it in {word_range} words.""",
+                    ),
+                    ("user", "{transcript}"),
+                ]
+            ),
             "note": ChatPromptTemplate.from_messages(
                 [
                     (
                         "system",
-                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables or images. Do not include unimportant information such as page numbers, teacher name, etc... Add information that is not in the provided transcript that will help the student better understand the subject. Try to make it clear and as simple as possible using simple terms and giving examples. Output in Markdown text formatting. To add images use this formatting: <<Write image search prompt here>> use a general description that can be easily found in a Google search, avoid overly specific descriptions. Do it in {word_range} words.""",
+                        """You are a student writing notes from this transcript, Make sections headers, include all the main ideas in bullets and sub-bullets or in tables. Strictly base your notes on the provided information, without adding any external information. Try to make it clear and as simple as possible using simple terms and giving examples. Output in Markdown text formatting. Do it in {word_range} words.""",
                     ),
                     ("user", "{transcript}"),
                 ]
@@ -95,7 +106,7 @@ class LLMAgent:
                 [
                     (
                         "system",
-                        "Write a brief summary of the following text, ensuring it does not exceed the word count of the original text and includes only the information present in the text—no additional details here is the text: {transcript}",
+                        "Write a brief summary of the following text, ensuring it does not exceed the word count of the original text and includes only the information present in the text—no additional details. here is the text: {transcript}",
                     ),
                 ]
             ),
@@ -135,12 +146,14 @@ class LLMAgent:
             raise ValueError(f"Task '{task}' not found in task_prompts.")
         return prompt | self.llm
 
-    def get_note(self, transcript, word_range):
+    def get_note(self, transcript, word_range, images=False):
         if st.session_state["cookies"]["pageWise"] == "True":
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
+            transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
-            final_note_chain = self._get_chain("note")
+            note_prompt = self._get_chain("note" if not images else "note_w_images")
             try:
-                summaries = "\n".join(
+                final_transcript = "\n".join(
                     (
                         page_notes_chain.invoke({"transcript": doc})
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
@@ -148,33 +161,29 @@ class LLMAgent:
                     )
                     for doc in transcript
                 )
-                self.note = final_note_chain.invoke(
-                    {"transcript": summaries, "word_range": word_range}
-                )
             except ResourceExhausted:
                 st.error(
                     "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
                 )
-        else:
-            note_prompt = self._get_chain("note")
-            try:
-                self.note = note_prompt.invoke(
-                    {"transcript": transcript, "word_range": word_range}
-                )
-            except ResourceExhausted:
-                st.error(
-                    "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
-                )
+        try:
+            self.note = note_prompt.invoke(
+                {"transcript": final_transcript, "word_range": word_range}
+            )
+        except ResourceExhausted:
+            st.error(
+                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+            )
         return self.note
 
     def get_flashcards(
-        self, flashcard_range, task="Term --> Definition", transcript=None
-    ):
-        if st.session_state["cookies"]["pageWise"] == "True":
+        self, flashcard_range, task="Term --> Definition", transcript=None):
+        if st.session_state["cookies"]["pageWise"] == "True" and transcript is not None:
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
+            transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
-            final_flashcard_chain = self._get_chain(task)
+            flashcard_chain = self._get_chain(task)
             try:
-                summaries = "\n".join(
+                final_transcript = "\n".join(
                     (
                         page_notes_chain.invoke({"transcript": doc})
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
@@ -182,25 +191,23 @@ class LLMAgent:
                     )
                     for doc in transcript
                 )
-                self.flashcards = final_flashcard_chain.invoke(
-                    {"transcript": summaries, "flashcard_range": flashcard_range}
-                )
             except ResourceExhausted:
                 st.error(
                     "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
                 )
-        else:
+        elif transcript is None:
+            final_transcript = self.note
+        elif transcript is not None:
+            final_transcript = transcript
+        try:
             flashcard_chain = self._get_chain(task)
-            if transcript is None:
-                transcript = self.note
-            try:
-                self.flashcards = flashcard_chain.invoke(
-                    {"transcript": transcript, "flashcard_range": flashcard_range}
-                )
-            except ResourceExhausted:
-                st.error(
-                    "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
-                )
+            self.flashcards = flashcard_chain.invoke(
+                {"transcript": final_transcript, "flashcard_range": flashcard_range}
+            )
+        except ResourceExhausted:
+            st.error(
+                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+            )
         return self.flashcards
 
     def edit(self, task, request, text):
@@ -258,7 +265,7 @@ def get_pdf_text(pdf, page_range: tuple):
     else:
         first_page, last_page = page_range
 
-    page_texts = []
+    text = ""
     for page_num in range(first_page - 1, last_page):
         page = pdf_reader.pages[page_num]
         if '/XObject' in page['/Resources']:
@@ -270,32 +277,13 @@ def get_pdf_text(pdf, page_range: tuple):
                 for image in images:
                     image_text = pytesseract.image_to_string(image)
                     if image_text.strip():
-                        page_texts.append(image_text + "\n")
+                        text  += image_text + "\n"
             else:
-                page_texts.append(page.extract_text())
+                text += page.extract_text() + "\n"
         else:
-            page_texts.append(page.extract_text())
-
-    if st.session_state["cookies"]["pageWise"] == "True":
-        final_texts = []
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1500,
-            chunk_overlap=10,
-            separators=[".", "!", "?", "\n"],
-        )
-
-        idx = 0
-        while idx < len(page_texts):
-            page = page_texts[idx]
-            if len(page.split()) < 75 and idx + 1 < len(page_texts):
-                page += " " + page_texts[idx + 1]
-                idx += 1
-            final_texts.extend(text_splitter.split_text(page))
-            idx += 1
-
-        return final_texts
-    else:
-        return " ".join(page_texts).strip()
+            text += page.extract_text() + "\n"
+    
+    return text
 
 def page_count(pdf):
     try:
@@ -418,7 +406,6 @@ code { font-family: 'Courier New', Courier, monospace; }
     </html>
     """
     
-    # Convert Markdown to HTML with extensions
     html_text = markdown.markdown(markdown_text, extensions=[
         'tables', 
         'fenced_code', 
@@ -467,7 +454,6 @@ code { font-family: 'Courier New', Courier, monospace; }
     questions_html += "</ol></body></html>"
     answers_html += "</ol></body></html>"
     
-    # Convert cheatsheet markdown to HTML if it is not None
     cheatsheet_html = ""
     if cheatsheet:
         cheatsheet_html = markdown.markdown(cheatsheet, extensions=[
@@ -481,7 +467,6 @@ code { font-family: 'Courier New', Courier, monospace; }
         ])
         cheatsheet_html = f"<div style='page-break-after: always;'></div>{cheatsheet_html}"
     
-    # Combine all HTML parts
     full_html = (
         cover_html + 
         "<div style='page-break-after: always;'></div>" + 
@@ -493,6 +478,5 @@ code { font-family: 'Courier New', Courier, monospace; }
         cheatsheet_html
     )
     
-    # Convert HTML to PDF
     pdf_data = pdfkit.from_string(full_html, False)
     return pdf_data
