@@ -10,3 +10,5 @@ pytesseract==0.3.13
 streamlit==1.37.1
 duckduckgo-search==6.3.0
 streamlit-cookies-manager==0.2.0
+Markdown==3.7
+pdfkit==1.0.0
