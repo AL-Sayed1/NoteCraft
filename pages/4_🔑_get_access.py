@@ -58,9 +58,9 @@ def main():
         type="password",
         value=value,
     )
-    PageWise = st.toggle(
-        "PageWise Summaries (experemental)",
-        value=st.session_state["cookies"].get("pageWise", "False") == "True",
+    NoteForge = st.toggle(
+        "NoteForge (experemental)",
+        value=st.session_state["cookies"].get("NoteForge", "False") == "True",
         help="May use more API calls, but can craft notes and flashcards from large ducuments without missing a detail. **Not recommended for free API keys**.",
     )
 
@@ -68,7 +68,7 @@ def main():
 
         st.session_state["cookies"][api_title] = API_KEY
         st.session_state["cookies"]["model"] = selected_model
-        st.session_state["cookies"]["pageWise"] = str(PageWise)
+        st.session_state["cookies"]["NoteForge"] = str(NoteForge)
         st.session_state["cookies"].save()
         if st.session_state["cookies"][api_title] == API_KEY:
             if api_title == "GOOGLE_API_KEY":

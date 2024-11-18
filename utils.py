@@ -147,7 +147,7 @@ class LLMAgent:
         return prompt | self.llm
 
     def get_note(self, transcript, word_range, images=False):
-        if st.session_state["cookies"]["pageWise"] == "True":
+        if st.session_state["cookies"]["NoteForge"] == "True":
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
             transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
@@ -163,7 +163,7 @@ class LLMAgent:
                 )
             except ResourceExhausted:
                 st.error(
-                    "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+                    "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
                 )
         try:
             self.note = note_prompt.invoke(
@@ -171,13 +171,13 @@ class LLMAgent:
             )
         except ResourceExhausted:
             st.error(
-                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
         return self.note
 
     def get_flashcards(
         self, flashcard_range, task="Term --> Definition", transcript=None):
-        if st.session_state["cookies"]["pageWise"] == "True" and transcript is not None:
+        if st.session_state["cookies"]["NoteForge"] == "True" and transcript is not None:
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
             transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
@@ -193,7 +193,7 @@ class LLMAgent:
                 )
             except ResourceExhausted:
                 st.error(
-                    "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+                    "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
                 )
         elif transcript is None:
             final_transcript = self.note
@@ -206,7 +206,7 @@ class LLMAgent:
             )
         except ResourceExhausted:
             st.error(
-                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
         return self.flashcards
 
@@ -216,7 +216,7 @@ class LLMAgent:
             return edit_chain.invoke({"request": request, "text": text})
         except ResourceExhausted:
             st.error(
-                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf PageWise is enabled, try disabling it."
+                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
 
 
