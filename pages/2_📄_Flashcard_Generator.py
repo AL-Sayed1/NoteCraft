@@ -94,6 +94,13 @@ def main():
                     file_name=f"{pdf_name}.csv",
                     mime="text/csv",
                 )
+                st.download_button(
+                    label="Download Paper Flashcards (PDF)",
+                    data=utils.paper(header_text=st.session_state['file_name'], flashcards=st.session_state["f_output"]),
+                    file_name=f"{st.session_state['file_name']} - Flashcards.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
                 st.markdown(
                     """
                 <style>

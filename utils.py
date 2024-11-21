@@ -147,11 +147,11 @@ class LLMAgent:
         return prompt | self.llm
 
     def get_note(self, transcript, word_range, images=False):
+        note_prompt = self._get_chain("note" if not images else "note_w_images")
         if st.session_state["cookies"]["NoteForge"] == "True":
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
             transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
-            note_prompt = self._get_chain("note" if not images else "note_w_images")
             try:
                 final_transcript = "\n".join(
                     (
@@ -165,7 +165,10 @@ class LLMAgent:
                 st.error(
                     "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
                 )
+        else:
+            final_transcript = transcript
         try:
+
             self.note = note_prompt.invoke(
                 {"transcript": final_transcript, "word_range": word_range}
             )
@@ -373,7 +376,7 @@ def parse_studkit(content):
     flashcards = re.search(r"flashcards=`\^(.*?)`\^", content, re.DOTALL).group(1)
     return note, flashcards
 
-def paper_studykit(markdown_text, header_text, flashcards, cheatsheet=None):
+def paper(header_text, markdown_text=None, flashcards=None, cheatsheet=None):
     styles = """
 body { font-family: serif; }
 h1 { text-align: center; font-size: 36px; }
@@ -406,53 +409,60 @@ code { font-family: 'Courier New', Courier, monospace; }
     </html>
     """
     
-    html_text = markdown.markdown(markdown_text, extensions=[
-        'tables', 
-        'fenced_code', 
-        'attr_list', 
-        'toc', 
-        'footnotes', 
-        'codehilite', 
-        'meta'
-    ])
-    
-    questions_html = f"""
-    <html>
-    <head>
-        <title>Questions</title>
-        <style>
-            {styles}
-        </style>
-    </head>
-    <body>
-        <h2>Questions</h2>
-        <ol class="questions">
-    """
-    answers_html = f"""
-    <html>
-    <head>
-        <title>Answer Key</title>
-        <style>
-            {styles}
-        </style>
-    </head>
-    <body>
-        <h2>Answer Key</h2>
-        <ol class="answers">
-    """
+    html_text = ""
+    if markdown_text:
+        html_text = "<div style='page-break-after: always;'></div>" + markdown.markdown(markdown_text, extensions=[
+            'tables', 
+            'fenced_code', 
+            'attr_list', 
+            'toc', 
+            'footnotes', 
+            'codehilite', 
+            'meta'
+        ])
 
-    flashcards_reader = csv.reader(clean_flashcards(flashcards).splitlines(), delimiter="\t")
-    for row in flashcards_reader:
-        if len(row) == 2:
-            question, answer = row
-            questions_html += f"<li>{question}</li>"
-            answers_html += f"<li>{answer}</li>"
-        else:
-            questions_html += f"<li>Invalid question format: {' '.join(row)}</li>"
-            answers_html += f"<li>Invalid answer format: {' '.join(row)}</li>"
-    
-    questions_html += "</ol></body></html>"
-    answers_html += "</ol></body></html>"
+    questions_html = ""
+    answers_html = ""
+    if flashcards:
+        questions_html = f"""
+        <div style='page-break-after: always;'></div>
+        <html>
+        <head>
+            <title>Questions</title>
+            <style>
+                {styles}
+            </style>
+        </head>
+        <body>
+            <h2>Questions</h2>
+            <ol class="questions">
+        """
+        answers_html = f"""
+        <div style='page-break-after: always;'></div>
+        <html>
+        <head>
+            <title>Answer Key</title>
+            <style>
+                {styles}
+            </style>
+        </head>
+        <body>
+            <h2>Answer Key</h2>
+            <ol class="answers">
+        """
+
+        flashcards_reader = csv.reader(clean_flashcards(flashcards).splitlines(), delimiter="\t")
+        for row in flashcards_reader:
+            if len(row) == 2:
+                question, answer = row
+                questions_html += f"<li>{question}</li>"
+                answers_html += f"<li>{answer}</li>"
+            else:
+                questions_html += f"<li>Invalid question format: {' '.join(row)}</li>"
+                answers_html += f"<li>Invalid answer format: {' '.join(row)}</li>"
+        
+        questions_html += "</ol></body></html>"
+        answers_html += "</ol></body></html>"
     
     cheatsheet_html = ""
     if cheatsheet:
@@ -468,12 +478,9 @@ code { font-family: 'Courier New', Courier, monospace; }
         cheatsheet_html = f"<div style='page-break-after: always;'></div>{cheatsheet_html}"
     
     full_html = (
-        cover_html + 
-        "<div style='page-break-after: always;'></div>" + 
-        html_text + 
-        "<div style='page-break-after: always;'></div>" + 
+        cover_html +
+        html_text +  
         questions_html + 
-        "<div style='page-break-after: always;'></div>" + 
         answers_html + 
         cheatsheet_html
     )

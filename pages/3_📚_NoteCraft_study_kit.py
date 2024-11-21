@@ -165,8 +165,8 @@ def main():
         )
         st.download_button(
             label="Download Paper Studykit (PDF)",
-            data=utils.paper_studykit(markdown_text=st.session_state["md_output"], header_text=st.session_state['file_name'], flashcards=st.session_state["flashcard_output"]),
-            file_name=f"{st.session_state['file_name']}.pdf",
+            data=utils.paper(header_text=st.session_state['file_name'], markdown_text=st.session_state["md_output"],  flashcards=st.session_state["flashcard_output"]),
+            file_name=f"{st.session_state['file_name']} - studykit.pdf",
             mime="application/pdf",
             use_container_width=True,
         )

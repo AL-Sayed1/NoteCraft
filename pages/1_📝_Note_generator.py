@@ -70,7 +70,7 @@ def main():
                         output = st.session_state["worker"].get_note(
                             raw_text, word_range, images
                         )
-                    except (KeyError, UnboundLocalError):
+                    except (KeyError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
                         )
@@ -97,7 +97,14 @@ def main():
                 file_name=f"{st.session_state['file_name']}.md",
                 mime="text/markdown",
             )
-
+            st.download_button(
+                    label="Download Paper Notes (PDF)",
+                    data=utils.paper(header_text=st.session_state['file_name'], markdown_text=st.session_state["output"]),
+                    file_name=f"{st.session_state['file_name']} - Notes.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+            
         usr_suggestion = st.chat_input("Edit the note so that...")
         if usr_suggestion:
 
