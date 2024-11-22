@@ -32,14 +32,15 @@ def main():
         )
         word_range = " to ".join(map(str, word_range))
         images = st.checkbox("Include images in the notes", value=True)
-        process = st.button("Process")
+        cheatsheet = st.checkbox("Include a cheatsheet", value=False)
+        process = st.button("Process", use_container_width=True)
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
         if file_extension != ".pdf" and file_extension != ".md":
             st.error("The file is not a valid PDF file nor a Markdown file.")
             st.stop()
         elif file_extension == ".md":
-            st.session_state["output"] = (
+            st.session_state["md_output"] = (
                 st.session_state["file"].getvalue().decode("utf-8")
             )
             st.session_state["file_name"] = (
@@ -67,19 +68,21 @@ def main():
                         st.session_state["file"], page_range=pages
                     )
                     try:
-                        output = st.session_state["worker"].get_note(
+                        st.session_state["md_AI_output"] = st.session_state["worker"].get_note(
                             raw_text, word_range, images
                         )
+                        if cheatsheet:
+                            st.session_state["cheatsheet"] = st.session_state["worker"].get_cheatsheet()
                     except (KeyError):
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
                         )
                         st.stop()
 
-                    st.session_state["output"] = utils.md_image_format(
-                        output
+                    st.session_state["md_output"] = utils.md_image_format(
+                        st.session_state["md_AI_output"]
                         if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                        else output.content
+                        else st.session_state["md_AI_output"].content
                     )
                     st.session_state["file_name"] = (
                         os.path.splitext(st.session_state["file"].name)[0]
@@ -88,18 +91,23 @@ def main():
                     )
                     st.success("Note Crafted!")
 
-    if "output" in st.session_state:
-        st.markdown(st.session_state["output"], unsafe_allow_html=True)
+    if "md_output" in st.session_state:
+        st.markdown("# Notes:")
+        st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
+        if "cheatsheet" in st.session_state and cheatsheet:
+            st.markdown("# Cheatsheet:")
+            st.markdown(st.session_state["cheatsheet"], unsafe_allow_html=True)
         with st.sidebar:
             st.download_button(
                 label="Download Note as .md",
-                data=st.session_state["output"],
+                data=st.session_state["md_output"] + "\n\n# Cheatsheet\n" + st.session_state["cheatsheet"] if "cheatsheet" in st.session_state and cheatsheet else st.session_state["md_output"],
                 file_name=f"{st.session_state['file_name']}.md",
                 mime="text/markdown",
+                use_container_width=True,
             )
             st.download_button(
                     label="Download Paper Notes (PDF)",
-                    data=utils.paper(header_text=st.session_state['file_name'], markdown_text=st.session_state["output"]),
+                    data=utils.paper(header_text=st.session_state['file_name'], markdown_text=st.session_state["md_output"], cheatsheet=st.session_state["cheatsheet"] if "cheatsheet" in st.session_state and cheatsheet else None),
                     file_name=f"{st.session_state['file_name']} - Notes.pdf",
                     mime="application/pdf",
                     use_container_width=True,
@@ -108,15 +116,15 @@ def main():
         usr_suggestion = st.chat_input("Edit the note so that...")
         if usr_suggestion:
 
-            output = st.session_state["worker"].edit(
+            st.session_state["md_AI_output"] = st.session_state["worker"].edit(
                 task="edit_note",
-                text=st.session_state["output"],
+                text=st.session_state["md_output"],
                 request=usr_suggestion,
             )
-            st.session_state["output"] = utils.md_image_format(
-                output
+            st.session_state["md_output"] = utils.md_image_format(
+                st.session_state["md_AI_output"]
                 if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                else output.content
+                else st.session_state["md_AI_output"].content
             )
             st.rerun()
 

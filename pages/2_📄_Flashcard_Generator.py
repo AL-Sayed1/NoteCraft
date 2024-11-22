@@ -35,7 +35,7 @@ def main():
         )
         flashcard_range = " to ".join(map(str, flashcard_range))
 
-        process = st.button("Process")
+        process = st.button("Process", use_container_width=True)
 
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()

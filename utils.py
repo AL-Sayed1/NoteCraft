@@ -93,6 +93,15 @@ class LLMAgent:
                     ("user", "{transcript}"),
                 ]
             ),
+            "cheatsheet": ChatPromptTemplate.from_messages(
+                [
+                    (
+                        "system",
+                        """You are tasked with creating a cheatsheet from the provided notes. The cheatsheet should be a concise summary of the main ideas in the notes. Include all the important information in the notes in a clear and concise manner. Output in Markdown text formatting using bullit points, lists, or tables.""",
+                    ),
+                    ("user", "{transcript}"),
+                ]
+            ),
             "edit_note": ChatPromptTemplate.from_messages(
                 [
                     ("system", """ you are tasked to edit this note: {text}."""),
@@ -213,6 +222,15 @@ class LLMAgent:
             )
         return self.flashcards
 
+    def get_cheatsheet(self, transcript=None):
+        cheatsheet_chain = self._get_chain("cheatsheet")
+        try:
+            return cheatsheet_chain.invoke({"transcript": self.note})
+        except ResourceExhausted:
+            st.error(
+                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
+            )
+    
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
         try:
@@ -380,6 +398,7 @@ def paper(header_text, markdown_text=None, flashcards=None, cheatsheet=None):
     styles = """
 body { font-family: serif; }
 h1 { text-align: center; font-size: 36px; }
+.page-headers { text-align: center; font-size: 24px; margin-bottom: 25px; }
 a { color: black; }
 .cover_page_title { text-align: center; margin-top: 30%; font-size: 70px; }
 h1, h2, h3, h4, h5, h6 { margin-top: 50px; }
@@ -411,7 +430,7 @@ code { font-family: 'Courier New', Courier, monospace; }
     
     html_text = ""
     if markdown_text:
-        html_text = "<div style='page-break-after: always;'></div>" + markdown.markdown(markdown_text, extensions=[
+        html_text = "<div style='page-break-after: always;'></div> <h1 class='.page-headers'>Notes:</h1>" + markdown.markdown(markdown_text, extensions=[
             'tables', 
             'fenced_code', 
             'attr_list', 
@@ -434,7 +453,7 @@ code { font-family: 'Courier New', Courier, monospace; }
             </style>
         </head>
         <body>
-            <h2>Questions</h2>
+            <h1 class='page-headers'>Questions</h1>
             <ol class="questions">
         """
         answers_html = f"""
@@ -447,7 +466,7 @@ code { font-family: 'Courier New', Courier, monospace; }
             </style>
         </head>
         <body>
-            <h2>Answer Key</h2>
+            <h1 class='page-headers'>Answer Key</h1>
             <ol class="answers">
         """
 
@@ -475,7 +494,7 @@ code { font-family: 'Courier New', Courier, monospace; }
             'codehilite', 
             'meta'
         ])
-        cheatsheet_html = f"<div style='page-break-after: always;'></div>{cheatsheet_html}"
+        cheatsheet_html = f"<div style='page-break-after: always;'></div> <h1 class='page-headers'>Cheatsheet</h1>{cheatsheet_html}"
     
     full_html = (
         cover_html +
@@ -484,6 +503,14 @@ code { font-family: 'Courier New', Courier, monospace; }
         answers_html + 
         cheatsheet_html
     )
-    
-    pdf_data = pdfkit.from_string(full_html, False)
+
+    pdf_data = pdfkit.from_string(full_html, False, options={
+        'page-size': 'A4',
+        'margin-top': '2cm',
+        'margin-right': '2cm',
+        'margin-bottom': '2cm',
+        'margin-left': '2cm',
+        'encoding': "UTF-8",
+        'no-outline': None
+    })
     return pdf_data
