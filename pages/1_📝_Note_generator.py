@@ -10,7 +10,7 @@ def main():
         upload_file_types=["pdf", "md"],
         worker=True,
     )
-    if not st.session_state["file"]:
+    if "md_output" not in st.session_state:
         st.markdown(
             """
         ### How to Generate Notes

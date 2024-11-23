@@ -25,14 +25,14 @@ def main():
         upload_file_types=["pdf", "studkit"],
         worker=True,
     )
-    if not st.session_state["file"]:
+    if "md_output" not in st.session_state:
         st.markdown(
             """
         ### How to Generate Studykit
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
         2. **Select the word range**: Adjust the slider to set the desired word range for the notes.
         3. **Select the number of flashcards**: Adjust the slider to set the desired flashcard range.
-        4. **Select the flashcards type**: Choose between 'Term --> Definition' or 'Question --> Answer' flashcards.
+        4. **Select the flashcards type**: Choose either 'Term --> Definition' or 'Question --> Answer' flashcards.
         5. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate the studykit from.
         6. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
         7. **Download or Edit**: Once the StudyKit is generated, you can download it or edit it using the chat input.

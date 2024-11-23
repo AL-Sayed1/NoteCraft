@@ -10,13 +10,13 @@ def main():
         upload_file_types=["pdf", "csv"],
         worker=True,
     )
-    if not st.session_state["file"]:
+    if "f_output" not in st.session_state:
         st.markdown(
             """
         ### How to Generate Flashcards
         1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
         2. **Select the number of flashcards**: Adjust the slider to set the desired flashcard range.
-        3. **Select the flashcards type**: Choose between 'Term --> Definition' or 'Question --> Answer' flashcards.
+        3. **Select the flashcards type**: Choose either 'Term --> Definition' or 'Question --> Answer' flashcards.
         4. **Choose pages (for PDFs)**: once you uploaded a PDF, select the pages you want to generate flashcards from.
         5. **Click 'Process'**: Hit the 'Process' button to generate your flashcards.
         6. **Download or Edit**: Once the flashcards are generated, you can download them as a csv file or edit them using the chat input.

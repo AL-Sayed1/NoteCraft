@@ -181,6 +181,7 @@ class LLMAgent:
                 st.error(
                     "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
                 )
+                st.stop()
         else:
             final_transcript = transcript
         try:
@@ -192,6 +193,7 @@ class LLMAgent:
             st.error(
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
+            st.stop()
         return self.note
 
     def get_flashcards(
@@ -222,6 +224,7 @@ class LLMAgent:
                 st.error(
                     "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
                 )
+                st.stop()
         elif transcript is None:
             final_transcript = self.note
         elif transcript is not None:
@@ -235,6 +238,7 @@ class LLMAgent:
             st.error(
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
+            st.stop()
         return self.flashcards
 
     def get_cheatsheet(self, transcript=None):
@@ -245,7 +249,7 @@ class LLMAgent:
             st.error(
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
-
+            st.stop()
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
         try:
@@ -254,6 +258,7 @@ class LLMAgent:
             st.error(
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
+            st.stop()
 
 
 def md_image_format(md, encoded=False):
