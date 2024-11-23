@@ -106,11 +106,12 @@ def main():
                             "worker"
                         ].get_note(raw_text, word_range, images)
                         flashcard_output = st.session_state["worker"].get_flashcards(
-                            flashcard_range=flashcard_range,
-                            task=flashcard_type
+                            flashcard_range=flashcard_range, task=flashcard_type
                         )
                         if cheatsheet:
-                            st.session_state["cheatsheet"] = st.session_state["worker"].get_cheatsheet()
+                            st.session_state["cheatsheet"] = st.session_state[
+                                "worker"
+                            ].get_cheatsheet()
 
                     except (KeyError, UnboundLocalError):
                         st.error(
@@ -135,7 +136,11 @@ def main():
                         st.session_state["file"]
                     )
                     st.session_state["output"] = make_studykit(
-                        markdown_content=st.session_state["md_output"] + "\n\n# Cheatsheet\n" + st.session_state["cheatsheet"] if "cheatsheet" in st.session_state and cheatsheet else st.session_state["md_output"],
+                        markdown_content=st.session_state["md_output"]
+                        + "\n\n# Cheatsheet\n"
+                        + st.session_state["cheatsheet"]
+                        if "cheatsheet" in st.session_state and cheatsheet
+                        else st.session_state["md_output"],
                         flashcards=st.session_state["flashcard_output"],
                         encoded_pdf=st.session_state["raw_pdf"],
                         page_range=pages,
@@ -143,9 +148,10 @@ def main():
                     st.success("StudyKit Crafted!")
         elif file_extension == ".studkit":
             file_content = st.session_state["file"].getvalue().decode("utf-8")
-            st.session_state["md_output"], st.session_state["flashcard_output"] = (
-                flashcards
-            ) = utils.parse_studkit(file_content)
+            (
+                st.session_state["md_output"],
+                st.session_state["flashcard_output"],
+            ) = flashcards = utils.parse_studkit(file_content)
             st.session_state["output"] = file_content
             st.success("StudyKit Loaded!")
 
@@ -161,7 +167,7 @@ def main():
             st.markdown(st.session_state["cheatsheet"])
         st.markdown("# Flashcards:")
         utils.display_flashcards(st.session_state["flashcard_output"])
-        
+
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],
@@ -171,7 +177,14 @@ def main():
         )
         st.download_button(
             label="Download Paper Studykit (PDF)",
-            data=utils.paper(header_text=st.session_state['file_name'], markdown_text=st.session_state["md_output"],  flashcards=st.session_state["flashcard_output"], cheatsheet=st.session_state["cheatsheet"] if "cheatsheet" in st.session_state and cheatsheet else None),
+            data=utils.paper(
+                header_text=st.session_state["file_name"],
+                markdown_text=st.session_state["md_output"],
+                flashcards=st.session_state["flashcard_output"],
+                cheatsheet=st.session_state["cheatsheet"]
+                if "cheatsheet" in st.session_state and cheatsheet
+                else None,
+            ),
             file_name=f"{st.session_state['file_name']} - studykit.pdf",
             mime="application/pdf",
             use_container_width=True,
@@ -201,7 +214,11 @@ def main():
                     encoded=True,
                 )
                 st.session_state["output"] = make_studykit(
-                    markdown_content=st.session_state["md_output"] + "\n\n# Cheatsheet\n" + st.session_state["cheatsheet"] if "cheatsheet" in st.session_state and cheatsheet else st.session_state["md_output"],
+                    markdown_content=st.session_state["md_output"]
+                    + "\n\n# Cheatsheet\n"
+                    + st.session_state["cheatsheet"]
+                    if "cheatsheet" in st.session_state and cheatsheet
+                    else st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
                     encoded_pdf=st.session_state["raw_pdf"],
                     page_range=pages,
@@ -220,7 +237,11 @@ def main():
                     else output.content
                 )
                 st.session_state["output"] = make_studykit(
-                    markdown_content=st.session_state["md_output"] + "\n\n# Cheatsheet\n" + st.session_state["cheatsheet"] if "cheatsheet" in st.session_state and cheatsheet else st.session_state["md_output"],                    
+                    markdown_content=st.session_state["md_output"]
+                    + "\n\n# Cheatsheet\n"
+                    + st.session_state["cheatsheet"]
+                    if "cheatsheet" in st.session_state and cheatsheet
+                    else st.session_state["md_output"],
                     flashcards=st.session_state["flashcard_output"],
                     encoded_pdf=st.session_state["raw_pdf"],
                     page_range=pages,

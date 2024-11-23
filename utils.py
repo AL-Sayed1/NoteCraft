@@ -18,6 +18,7 @@ from google.api_core.exceptions import ResourceExhausted
 import markdown
 import pdfkit
 
+
 def universal_setup(
     page_title="Home", page_icon="📝", upload_file_types=[], worker=False
 ):
@@ -69,7 +70,9 @@ class LLMAgent:
                 api_key=self.cookies["OPENAI_API_KEY"],
             )
         else:
-            st.write(f"Please make sure to select a model in the get access page, and you have set a valid API key.")
+            st.write(
+                f"Please make sure to select a model in the get access page, and you have set a valid API key."
+            )
             st.stop()
         return llm
 
@@ -144,7 +147,7 @@ class LLMAgent:
                 [
                     (
                         "system",
-                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False. return the questions and answers in a CSV formate with '\t' as the seperator. each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information.",
+                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False, multiple choice. return the questions and answers in a CSV formate with '\t' as the seperator to seperate the question from the options in MCQ questions use <br>. each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information.",
                     ),
                     ("user", "{transcript}"),
                 ]
@@ -158,7 +161,11 @@ class LLMAgent:
     def get_note(self, transcript, word_range, images=False):
         note_prompt = self._get_chain("note" if not images else "note_w_images")
         if st.session_state["cookies"]["NoteForge"] == "True":
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=3000,
+                chunk_overlap=200,
+                separators=["\n", ".", "!", "?"],
+            )
             transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
             try:
@@ -188,9 +195,17 @@ class LLMAgent:
         return self.note
 
     def get_flashcards(
-        self, flashcard_range, task="Term --> Definition", transcript=None):
-        if st.session_state["cookies"]["NoteForge"] == "True" and transcript is not None:
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, chunk_overlap=200, separators=["\n", ".", "!", "?"], )
+        self, flashcard_range, task="Term --> Definition", transcript=None
+    ):
+        if (
+            st.session_state["cookies"]["NoteForge"] == "True"
+            and transcript is not None
+        ):
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=3000,
+                chunk_overlap=200,
+                separators=["\n", ".", "!", "?"],
+            )
             transcript = text_splitter.split_text(transcript)
             page_notes_chain = self._get_chain("page_note")
             flashcard_chain = self._get_chain(task)
@@ -230,7 +245,7 @@ class LLMAgent:
             st.error(
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
-    
+
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
         try:
@@ -289,22 +304,23 @@ def get_pdf_text(pdf, page_range: tuple):
     text = ""
     for page_num in range(first_page - 1, last_page):
         page = pdf_reader.pages[page_num]
-        if '/XObject' in page['/Resources']:
-            xObject = page['/Resources']['/XObject'].get_object()
-            if any(xObject[obj]['/Subtype'] == '/Image' for obj in xObject):
+        if "/XObject" in page["/Resources"]:
+            xObject = page["/Resources"]["/XObject"].get_object()
+            if any(xObject[obj]["/Subtype"] == "/Image" for obj in xObject):
                 images = convert_from_bytes(
                     pdf.getvalue(), first_page=page_num + 1, last_page=page_num + 1
                 )
                 for image in images:
                     image_text = pytesseract.image_to_string(image)
                     if image_text.strip():
-                        text  += image_text + "\n"
+                        text += image_text + "\n"
             else:
                 text += page.extract_text() + "\n"
         else:
             text += page.extract_text() + "\n"
-    
+
     return text
+
 
 def page_count(pdf):
     try:
@@ -382,7 +398,7 @@ def display_flashcards(flashcards):
             st.warning("You have reached the last question.")
 
     question = st.session_state.questions[st.session_state.current_question_index]
-    st.write(f"Question {st.session_state.current_question_index + 1}: {question}")
+    st.html(f"Question {st.session_state.current_question_index + 1}: {question}")
 
     if st.session_state.show_answer:
         answer = st.session_state.answers[st.session_state.current_question_index]
@@ -394,6 +410,7 @@ def parse_studkit(content):
     flashcards = re.search(r"flashcards=`\^(.*?)`\^", content, re.DOTALL).group(1)
     return note, flashcards
 
+
 def paper(header_text, markdown_text=None, flashcards=None, cheatsheet=None):
     styles = """
 body { font-family: serif; }
@@ -403,6 +420,7 @@ a { color: black; }
 .cover_page_title { text-align: center; margin-top: 30%; font-size: 70px; }
 h1, h2, h3, h4, h5, h6 { margin-top: 50px; }
 p, li { font-size: 20px; }
+li br { margin-bottom: 20px; display: block; content: "";}
 table { border-collapse: collapse; width: 100%; margin: 1em 0; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f5f5f5; }
@@ -427,18 +445,24 @@ code { font-family: 'Courier New', Courier, monospace; }
     </body>
     </html>
     """
-    
+
     html_text = ""
     if markdown_text:
-        html_text = "<div style='page-break-after: always;'></div> <h1 class='.page-headers'>Notes:</h1>" + markdown.markdown(markdown_text, extensions=[
-            'tables', 
-            'fenced_code', 
-            'attr_list', 
-            'toc', 
-            'footnotes', 
-            'codehilite', 
-            'meta'
-        ])
+        html_text = (
+            "<div style='page-break-after: always;'></div> <h1 class='.page-headers'>Notes:</h1>"
+            + markdown.markdown(
+                markdown_text,
+                extensions=[
+                    "tables",
+                    "fenced_code",
+                    "attr_list",
+                    "toc",
+                    "footnotes",
+                    "codehilite",
+                    "meta",
+                ],
+            )
+        )
 
     questions_html = ""
     answers_html = ""
@@ -470,7 +494,9 @@ code { font-family: 'Courier New', Courier, monospace; }
             <ol class="answers">
         """
 
-        flashcards_reader = csv.reader(clean_flashcards(flashcards).splitlines(), delimiter="\t")
+        flashcards_reader = csv.reader(
+            clean_flashcards(flashcards).splitlines(), delimiter="\t"
+        )
         for row in flashcards_reader:
             if len(row) == 2:
                 question, answer = row
@@ -479,38 +505,38 @@ code { font-family: 'Courier New', Courier, monospace; }
             else:
                 questions_html += f"<li>Invalid question format: {' '.join(row)}</li>"
                 answers_html += f"<li>Invalid answer format: {' '.join(row)}</li>"
-        
+
         questions_html += "</ol></body></html>"
         answers_html += "</ol></body></html>"
-    
+
     cheatsheet_html = ""
     if cheatsheet:
-        cheatsheet_html = markdown.markdown(cheatsheet, extensions=[
-            'tables', 
-            'fenced_code', 
-            'attr_list', 
-            'toc', 
-            'footnotes', 
-            'codehilite', 
-            'meta'
-        ])
+        cheatsheet_html = markdown.markdown(
+            cheatsheet,
+            extensions=[
+                "tables",
+                "fenced_code",
+                "attr_list",
+                "toc",
+                "footnotes",
+                "codehilite",
+                "meta",
+            ],
+        )
         cheatsheet_html = f"<div style='page-break-after: always;'></div> <h1 class='page-headers'>Cheatsheet</h1>{cheatsheet_html}"
-    
-    full_html = (
-        cover_html +
-        html_text +  
-        questions_html + 
-        answers_html + 
-        cheatsheet_html
-    )
 
-    pdf_data = pdfkit.from_string(full_html, False, options={
-        'page-size': 'A4',
-        'margin-top': '2cm',
-        'margin-right': '2cm',
-        'margin-bottom': '2cm',
-        'margin-left': '2cm',
-        'encoding': "UTF-8",
-        'no-outline': None
-    })
+    full_html = cover_html + html_text + questions_html + answers_html + cheatsheet_html
+    pdf_data = pdfkit.from_string(
+        full_html,
+        False,
+        options={
+            "page-size": "A4",
+            "margin-top": "2cm",
+            "margin-right": "2cm",
+            "margin-bottom": "2cm",
+            "margin-left": "2cm",
+            "encoding": "UTF-8",
+            "no-outline": None,
+        },
+    )
     return pdf_data

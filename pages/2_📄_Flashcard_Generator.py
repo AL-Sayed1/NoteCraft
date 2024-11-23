@@ -39,6 +39,11 @@ def main():
 
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
+        st.session_state["file_name"] = (
+            os.path.splitext(st.session_state["file"].name)[0]
+            if st.session_state["file"]
+            else "note"
+        )
         if file_extension != ".pdf" and file_extension != ".csv":
             st.error("The file is not a valid PDF file nor a CSV file.")
             st.stop()
@@ -96,7 +101,10 @@ def main():
                 )
                 st.download_button(
                     label="Download Paper Flashcards (PDF)",
-                    data=utils.paper(header_text=st.session_state['file_name'], flashcards=st.session_state["f_output"]),
+                    data=utils.paper(
+                        header_text=st.session_state["file_name"],
+                        flashcards=st.session_state["f_output"],
+                    ),
                     file_name=f"{st.session_state['file_name']} - Flashcards.pdf",
                     mime="application/pdf",
                     use_container_width=True,
