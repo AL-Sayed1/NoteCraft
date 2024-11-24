@@ -1,5 +1,4 @@
 import streamlit as st
-from dotenv import load_dotenv
 from utils import universal_setup
 
 
