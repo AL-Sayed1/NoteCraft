@@ -167,7 +167,10 @@ def main():
             st.markdown(st.session_state["cheatsheet"])
         st.markdown("# Flashcards:")
         utils.display_flashcards(st.session_state["flashcard_output"])
-
+        if st.button("Edit Note", use_container_width=True):
+            st.session_state["md_AI_output"] = st.text_area("Edit the note below:", st.session_state["md_AI_output"], height=300, on_change=utils.save_note)
+            if st.button("Update Note", use_container_width=True):
+                utils.save_note()
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],

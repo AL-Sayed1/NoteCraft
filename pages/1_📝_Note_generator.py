@@ -141,6 +141,10 @@ def main():
             )
             st.rerun()
 
-
+        if st.button("Edit Note", use_container_width=True):
+            st.session_state["md_AI_output"] = st.text_area("Edit the note below:", st.session_state["md_AI_output"], height=300, on_change=utils.save_note)
+            if st.button("Update Note", use_container_width=True):
+                utils.save_note()
+  
 if __name__ == "__main__":
     main()
