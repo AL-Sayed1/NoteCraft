@@ -90,7 +90,7 @@ def main():
             st.error("There was an error while saving the API keys :(")
 
     st.caption(
-        f"Get the API key from the [Google AI studio](https://aistudio.google.com/app/apikey)."
+        f"Get a free API key from [Google AI studio](https://aistudio.google.com/app/apikey)."
     )
 
 

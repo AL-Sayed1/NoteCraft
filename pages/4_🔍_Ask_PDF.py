@@ -102,6 +102,15 @@ def main():
     if st.session_state["cookies"].get("model") != "GPT-4o-mini":
         st.error("Ask PDF is only supported by GPT-4o-mini model.")
         st.stop()
+    
+    if "conversation" not in st.session_state or st.session_state["conversation"] is None:
+        st.write(
+            """
+            this a chatbot that answers the students questions based on the provided document.
+
+            **How to use**: Just upload a PDF file, press process, and start asking questions!
+            """
+        )
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
     if "chat_history" not in st.session_state:
