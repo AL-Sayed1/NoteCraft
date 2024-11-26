@@ -168,6 +168,13 @@ def main():
                     All in one place!
                 </div>
             </a>
+            <a href="/Ask_PDF" class="feature-link">
+                <div class="feature-title">Ask PDF</div>
+                <div class="feature-content">
+                    Ask PDF is a feature that allows you to ask questions about the content of your PDF and get answers using AI!
+                    Simply upload your PDF and ask your questions!
+                </div>
+            </a>
             <div class="more-info">
                 <div>Crafted by Sayed Hashim</div>
                 <div><a href="https://github.com/AL-Sayed1/NoteCraft" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
