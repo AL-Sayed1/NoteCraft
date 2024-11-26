@@ -1,5 +1,4 @@
 import streamlit as st
-from os import environ
 from streamlit_cookies_manager import EncryptedCookieManager
 import csv
 import re
@@ -39,8 +38,8 @@ def universal_setup(
     )
 
     st.session_state["cookies"] = EncryptedCookieManager(
-        prefix=environ.get("COOKIES_PREFIX"),
-        password=environ.get("COOKIES_PASSWORD"),
+        prefix=st.secrets["COOKIES_PREFIX"],
+        password=st.secrets["COOKIES_PASSWORD"],
     )
     if not st.session_state["cookies"].ready():
         st.stop()
