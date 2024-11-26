@@ -1,5 +1,4 @@
 import streamlit as st
-from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -31,7 +30,7 @@ def get_conversation_chain(vectorstore):
     )
 
     prompt = """
-    You are a chatbot that answers the users questions about the context they provide which is a PDF file, and you will reply with markdown.
+    You are a chatbot that answers the students questions about the context they provide which is a PDF file, and you will reply with markdown.
                                         
     <context>
     {context}
@@ -81,7 +80,7 @@ def handle_user_input(user_prompt):
     st.session_state.chat_history.append({"role": "user", "content": user_prompt})
     st.session_state.chat_history.append({"role": "ai", "content": response["answer"]})
 
-    for i, msg in enumerate(st.session_state.chat_history):
+    for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             with st.chat_message("user"):
                 st.write(msg["content"])
@@ -127,7 +126,6 @@ def main():
             except AttributeError:
                 st.error("Please upload a valid PDF file.")
                 return
-
     user_input = st.chat_input(placeholder="Ask me anything")
     if user_input:
         handle_user_input(user_input)
