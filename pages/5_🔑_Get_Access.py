@@ -1,8 +1,6 @@
 import os
 import streamlit as st
 import requests
-from streamlit_cookies_manager import EncryptedCookieManager
-from os import environ
 import utils
 
 

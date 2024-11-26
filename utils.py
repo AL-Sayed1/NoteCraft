@@ -250,6 +250,7 @@ class LLMAgent:
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
             st.stop()
+
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
         try:
@@ -550,6 +551,6 @@ code { font-family: 'Courier New', Courier, monospace; }
 
 
 def save_note():
-            st.session_state["md_AI_output"] = st.session_state["edited_note"]
-            st.session_state["md_output"] = md_image_format(st.session_state["md_AI_output"])
-            st.success("Note Updated!")
+    st.session_state["md_AI_output"] = st.session_state["edited_note"]
+    st.session_state["md_output"] = md_image_format(st.session_state["md_AI_output"])
+    st.success("Note Updated!")

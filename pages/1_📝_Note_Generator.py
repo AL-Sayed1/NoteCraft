@@ -76,7 +76,7 @@ def main():
                             st.session_state["cheatsheet"] = st.session_state[
                                 "worker"
                             ].get_cheatsheet()
-                    except (KeyError):
+                    except KeyError:
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
                         )
@@ -103,11 +103,13 @@ def main():
         with st.sidebar:
             st.download_button(
                 label="Download Note as .md",
-                data=st.session_state["md_output"]
-                + "\n\n# Cheatsheet\n"
-                + st.session_state["cheatsheet"]
-                if "cheatsheet" in st.session_state and cheatsheet
-                else st.session_state["md_output"],
+                data=(
+                    st.session_state["md_output"]
+                    + "\n\n# Cheatsheet\n"
+                    + st.session_state["cheatsheet"]
+                    if "cheatsheet" in st.session_state and cheatsheet
+                    else st.session_state["md_output"]
+                ),
                 file_name=f"{st.session_state['file_name']}.md",
                 mime="text/markdown",
                 use_container_width=True,
@@ -117,9 +119,11 @@ def main():
                 data=utils.paper(
                     header_text=st.session_state["file_name"],
                     markdown_text=st.session_state["md_output"],
-                    cheatsheet=st.session_state["cheatsheet"]
-                    if "cheatsheet" in st.session_state and cheatsheet
-                    else None,
+                    cheatsheet=(
+                        st.session_state["cheatsheet"]
+                        if "cheatsheet" in st.session_state and cheatsheet
+                        else None
+                    ),
                 ),
                 file_name=f"{st.session_state['file_name']} - Notes.pdf",
                 mime="application/pdf",
@@ -142,9 +146,15 @@ def main():
             st.rerun()
 
         if st.button("Edit Note", use_container_width=True):
-            st.session_state["md_AI_output"] = st.text_area("Edit the note below:", st.session_state["md_AI_output"], height=300, on_change=utils.save_note)
+            st.session_state["md_AI_output"] = st.text_area(
+                "Edit the note below:",
+                st.session_state["md_AI_output"],
+                height=300,
+                on_change=utils.save_note,
+            )
             if st.button("Update Note", use_container_width=True):
                 utils.save_note()
-  
+
+
 if __name__ == "__main__":
     main()

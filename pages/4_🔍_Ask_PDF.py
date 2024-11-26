@@ -18,7 +18,10 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", api_key=st.session_state["cookies"]["OPENAI_API_KEY"])
+    embeddings = OpenAIEmbeddings(
+        model="text-embedding-3-small",
+        api_key=st.session_state["cookies"]["OPENAI_API_KEY"],
+    )
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
@@ -93,7 +96,9 @@ def handle_user_input(user_prompt):
 
 
 def main():
-    utils.universal_setup(page_title="Ask My PDF", page_icon="🔍", upload_file_types=["pdf"])
+    utils.universal_setup(
+        page_title="Ask My PDF", page_icon="🔍", upload_file_types=["pdf"]
+    )
     if st.session_state["cookies"].get("model") != "GPT-4o-mini":
         st.error("Ask PDF is only supported by GPT-4o-mini model.")
         st.stop()
@@ -102,15 +107,14 @@ def main():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-
-
     with st.sidebar:
         if st.button("Process"):
             try:
                 with st.spinner("Processing"):
                     # Extract text from pdf
                     raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=None,
+                        st.session_state["file"],
+                        page_range=None,
                     )
 
                     # get the text chunks
