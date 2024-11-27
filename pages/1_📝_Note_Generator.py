@@ -30,9 +30,7 @@ def main():
             min_value=100,
             max_value=1500,
         )
-        word_range = " to ".join(map(str, word_range))
         images = st.checkbox("Include images in the notes", value=True)
-        cheatsheet = st.checkbox("Include a cheatsheet", value=False)
         process = st.button("Process", use_container_width=True)
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
@@ -72,10 +70,6 @@ def main():
                         st.session_state["md_AI_output"] = st.session_state[
                             "worker"
                         ].get_note(raw_text, word_range, images)
-                        if cheatsheet:
-                            st.session_state["cheatsheet"] = st.session_state[
-                                "worker"
-                            ].get_cheatsheet()
                     except KeyError:
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
@@ -97,19 +91,10 @@ def main():
     if "md_output" in st.session_state:
         st.markdown("# Notes:")
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
-        if "cheatsheet" in st.session_state and cheatsheet:
-            st.markdown("# Cheatsheet:")
-            st.markdown(st.session_state["cheatsheet"], unsafe_allow_html=True)
         with st.sidebar:
             st.download_button(
                 label="Download Note as .md",
-                data=(
-                    st.session_state["md_output"]
-                    + "\n\n# Cheatsheet\n"
-                    + st.session_state["cheatsheet"]
-                    if "cheatsheet" in st.session_state and cheatsheet
-                    else st.session_state["md_output"]
-                ),
+                data=(st.session_state["md_output"]),
                 file_name=f"{st.session_state['file_name']}.md",
                 mime="text/markdown",
                 use_container_width=True,
@@ -119,11 +104,6 @@ def main():
                 data=utils.paper(
                     header_text=st.session_state["file_name"],
                     markdown_text=st.session_state["md_output"],
-                    cheatsheet=(
-                        st.session_state["cheatsheet"]
-                        if "cheatsheet" in st.session_state and cheatsheet
-                        else None
-                    ),
                 ),
                 file_name=f"{st.session_state['file_name']} - Notes.pdf",
                 mime="application/pdf",

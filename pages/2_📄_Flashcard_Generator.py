@@ -24,7 +24,8 @@ def main():
         )
     with st.sidebar:
         flashcard_type = st.radio(
-            "Flashcard Type", ["Term --> Definition", "Question --> Answer"]
+            "Flashcard Type",
+            ["Term --> Definition", "Question --> Answer", "MCQ --> Answer"],
         )
         flashcard_range = st.slider(
             "Select how many flashcards do you want",
@@ -33,7 +34,6 @@ def main():
             min_value=5,
             max_value=60,
         )
-        flashcard_range = " to ".join(map(str, flashcard_range))
 
         process = st.button("Process", use_container_width=True)
 

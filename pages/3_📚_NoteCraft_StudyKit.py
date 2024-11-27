@@ -56,11 +56,10 @@ def main():
             min_value=100,
             max_value=1500,
         )
-        word_range = " to ".join(map(str, word_range))
         images = st.checkbox("Include images in the notes", value=True)
-        cheatsheet = st.checkbox("Include a cheatsheet", value=False)
         flashcard_type = st.radio(
-            "Flashcard Type", ["Term --> Definition", "Question --> Answer"]
+            "Flashcard Type",
+            ["Term --> Definition", "Question --> Answer", "MCQ --> Answer"],
         )
 
         flashcard_range = st.slider(
@@ -108,10 +107,6 @@ def main():
                         flashcard_output = st.session_state["worker"].get_flashcards(
                             flashcard_range=flashcard_range, task=flashcard_type
                         )
-                        if cheatsheet:
-                            st.session_state["cheatsheet"] = st.session_state[
-                                "worker"
-                            ].get_cheatsheet()
 
                     except (KeyError, UnboundLocalError):
                         st.error(
@@ -136,13 +131,7 @@ def main():
                         st.session_state["file"]
                     )
                     st.session_state["output"] = make_studykit(
-                        markdown_content=(
-                            st.session_state["md_output"]
-                            + "\n\n# Cheatsheet\n"
-                            + st.session_state["cheatsheet"]
-                            if "cheatsheet" in st.session_state and cheatsheet
-                            else st.session_state["md_output"]
-                        ),
+                        markdown_content=(st.session_state["md_output"]),
                         flashcards=st.session_state["flashcard_output"],
                         encoded_pdf=st.session_state["raw_pdf"],
                         page_range=pages,
@@ -164,9 +153,6 @@ def main():
     ):
         st.markdown("# Notes:")
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
-        if "cheatsheet" in st.session_state and cheatsheet:
-            st.markdown("# Cheatsheet:")
-            st.markdown(st.session_state["cheatsheet"])
         st.markdown("# Flashcards:")
         utils.display_flashcards(st.session_state["flashcard_output"])
         if st.button("Edit Note", use_container_width=True):
@@ -191,11 +177,6 @@ def main():
                 header_text=st.session_state["file_name"],
                 markdown_text=st.session_state["md_output"],
                 flashcards=st.session_state["flashcard_output"],
-                cheatsheet=(
-                    st.session_state["cheatsheet"]
-                    if "cheatsheet" in st.session_state and cheatsheet
-                    else None
-                ),
             ),
             file_name=f"{st.session_state['file_name']} - studykit.pdf",
             mime="application/pdf",
@@ -226,13 +207,7 @@ def main():
                     encoded=True,
                 )
                 st.session_state["output"] = make_studykit(
-                    markdown_content=(
-                        st.session_state["md_output"]
-                        + "\n\n# Cheatsheet\n"
-                        + st.session_state["cheatsheet"]
-                        if "cheatsheet" in st.session_state and cheatsheet
-                        else st.session_state["md_output"]
-                    ),
+                    markdown_content=(st.session_state["md_output"]),
                     flashcards=st.session_state["flashcard_output"],
                     encoded_pdf=st.session_state["raw_pdf"],
                     page_range=pages,
@@ -251,13 +226,7 @@ def main():
                     else output.content
                 )
                 st.session_state["output"] = make_studykit(
-                    markdown_content=(
-                        st.session_state["md_output"]
-                        + "\n\n# Cheatsheet\n"
-                        + st.session_state["cheatsheet"]
-                        if "cheatsheet" in st.session_state and cheatsheet
-                        else st.session_state["md_output"]
-                    ),
+                    markdown_content=(st.session_state["md_output"]),
                     flashcards=st.session_state["flashcard_output"],
                     encoded_pdf=st.session_state["raw_pdf"],
                     page_range=pages,

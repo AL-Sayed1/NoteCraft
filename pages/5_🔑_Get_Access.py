@@ -19,7 +19,6 @@ def validate_openai_api_key(api_key):
 def validate_Google_api_key(api_key):
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
     request = requests.get(url)
-    print(request)
     if request.status_code == 200:
         return True
     else:

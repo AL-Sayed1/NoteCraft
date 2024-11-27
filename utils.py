@@ -95,15 +95,6 @@ class LLMAgent:
                     ("user", "{transcript}"),
                 ]
             ),
-            "cheatsheet": ChatPromptTemplate.from_messages(
-                [
-                    (
-                        "system",
-                        """You are tasked with creating a cheatsheet from the provided notes. The cheatsheet should be a concise summary of the main ideas in the notes. Include all the important information in the notes in a clear and concise manner. Output in Markdown text formatting using bullit points, lists, or tables.""",
-                    ),
-                    ("user", "{transcript}"),
-                ]
-            ),
             "edit_note": ChatPromptTemplate.from_messages(
                 [
                     ("system", """ you are tasked to edit this note: {text}."""),
@@ -146,7 +137,16 @@ class LLMAgent:
                 [
                     (
                         "system",
-                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions, short answer questions and True or False, multiple choice. return the questions and answers in a CSV formate with '\t' as the seperator to seperate the question from the options in MCQ questions use <br>. each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions, Make sure to not generate less or more than the given amount or you will be punished. only return the csv data without any other information.",
+                        "You are tasked with creating a mock test that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note, You should include all these question types: fill in the blank, essay questions and short answer questions.. return the questions and answers in a CSV formate with '\t' as the seperator. Each row should include 2 columns: question \t answer. make exactly from {flashcard_range} Questions. only return the csv data without any other information.",
+                    ),
+                    ("user", "{transcript}"),
+                ]
+            ),
+            "MCQ --> Answer": ChatPromptTemplate.from_messages(
+                [
+                    (
+                        "system",
+                        "You are tasked with creating a mock test with multiple choice questions that will help students learn and understand concepts in this note. Only make questions directly related to the main idea of the note. Include multiple choice and True/False Questions. return the questions and answers in a CSV formate with '\t' as the seperator. Each row should include 2 columns: question \t Answer. To seperate the question from the options in use <br>. make exactly from {flashcard_range} Questions. only return the csv data without any other information.",
                     ),
                     ("user", "{transcript}"),
                 ]
@@ -157,7 +157,7 @@ class LLMAgent:
             raise ValueError(f"Task '{task}' not found in task_prompts.")
         return prompt | self.llm
 
-    def get_note(self, transcript, word_range, images=False):
+    def get_note(self, transcript, word_range: tuple, images=False):
         note_prompt = self._get_chain("note" if not images else "note_w_images")
         if st.session_state["cookies"]["NoteForge"] == "True":
             text_splitter = RecursiveCharacterTextSplitter(
@@ -186,7 +186,10 @@ class LLMAgent:
         try:
 
             self.note = note_prompt.invoke(
-                {"transcript": final_transcript, "word_range": word_range}
+                {
+                    "transcript": final_transcript,
+                    "word_range": " to ".join(map(str, word_range)),
+                }
             )
         except ResourceExhausted:
             st.error(
@@ -196,7 +199,7 @@ class LLMAgent:
         return self.note
 
     def get_flashcards(
-        self, flashcard_range, task="Term --> Definition", transcript=None
+        self, flashcard_range: tuple, task="Term --> Definition", transcript=None
     ):
         if (
             st.session_state["cookies"]["NoteForge"] == "True"
@@ -231,7 +234,10 @@ class LLMAgent:
         try:
             flashcard_chain = self._get_chain(task)
             self.flashcards = flashcard_chain.invoke(
-                {"transcript": final_transcript, "flashcard_range": flashcard_range}
+                {
+                    "transcript": final_transcript,
+                    "flashcard_range": " to ".join(map(str, flashcard_range)),
+                }
             )
         except ResourceExhausted:
             st.error(
@@ -239,16 +245,6 @@ class LLMAgent:
             )
             st.stop()
         return self.flashcards
-
-    def get_cheatsheet(self, transcript=None):
-        cheatsheet_chain = self._get_chain("cheatsheet")
-        try:
-            return cheatsheet_chain.invoke({"transcript": self.note})
-        except ResourceExhausted:
-            st.error(
-                "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
-            )
-            st.stop()
 
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
@@ -416,7 +412,7 @@ def parse_studkit(content):
     return note, flashcards
 
 
-def paper(header_text, markdown_text=None, flashcards=None, cheatsheet=None):
+def paper(header_text, markdown_text=None, flashcards=None):
     styles = """
 body { font-family: serif; }
 h1 { text-align: center; font-size: 36px; }
@@ -516,23 +512,7 @@ code { font-family: 'Courier New', Courier, monospace; }
         questions_html += "</ol></body></html>"
         answers_html += "</ol></body></html>"
 
-    cheatsheet_html = ""
-    if cheatsheet:
-        cheatsheet_html = markdown.markdown(
-            cheatsheet,
-            extensions=[
-                "tables",
-                "fenced_code",
-                "attr_list",
-                "toc",
-                "footnotes",
-                "codehilite",
-                "meta",
-            ],
-        )
-        cheatsheet_html = f"<div style='page-break-after: always;'></div> <h1 class='page-headers'>Cheatsheet</h1>{cheatsheet_html}"
-
-    full_html = cover_html + html_text + questions_html + answers_html + cheatsheet_html
+    full_html = cover_html + html_text + questions_html + answers_html
     pdf_data = pdfkit.from_string(
         full_html,
         False,
