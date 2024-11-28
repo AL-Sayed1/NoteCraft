@@ -126,7 +126,7 @@ def main():
                     <div class="info-content">Spend less time making notes and flashcards and more time studying.</div>
                 </div>
             </div>
-            <a href="/Note_generator" class="feature-link">
+            <a href="/Note_Generator" class="feature-link">
                 <div class="feature-title">Note Generator</div>
                 <div class="feature-content">
                     <p>Generate concise notes from your PDF content using AI! Just follow these simple steps:</p>
@@ -153,7 +153,7 @@ def main():
                     </ul>
                 </div>
             </a>
-            <a href="/NoteCraft_study_kit" class="feature-link">
+            <a href="/NoteCraft_StudyKit" class="feature-link">
                 <div class="feature-title">NoteCraft StudyKit</div>
                 <div class="feature-content">
                     Generates an entire interactive document which includes:
