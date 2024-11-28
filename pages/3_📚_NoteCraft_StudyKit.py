@@ -155,13 +155,15 @@ def main():
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
         st.markdown("# Flashcards:")
         utils.display_flashcards(st.session_state["flashcard_output"])
-        if st.button("Edit Note", use_container_width=True):
-            st.session_state["md_AI_output"] = st.text_area(
-                "Edit the note below:",
-                st.session_state["md_AI_output"],
-                height=300,
-                on_change=utils.save_note,
-            )
+        if "md_AI_output" in st.session_state:
+            if st.button("Edit Note", use_container_width=True):
+                st.session_state["md_AI_output"] = st.text_area(
+                    "Edit the note below:",
+                    st.session_state["md_AI_output"],
+                    height=300,
+                    on_change=utils.save_note,
+                )
+            
             if st.button("Update Note", use_container_width=True):
                 utils.save_note()
         st.download_button(
@@ -187,13 +189,13 @@ def main():
         edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
         if usr_suggestion:
             if edit_what == "Note":
-                try:
+                if "md_AI_output" in st.session_state:
                     st.session_state["md_AI_output"] = st.session_state["worker"].edit(
                         task="edit_note",
                         text=st.session_state["md_AI_output"],
                         request=usr_suggestion,
                     )
-                except KeyError:
+                else:
                     st.error(
                         "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
                     )

@@ -125,6 +125,8 @@ def main():
             )
             st.rerun()
 
+        if "md_AI_output" not in st.session_state:
+            st.session_state["md_AI_output"] = st.session_state["md_output"]
         if st.button("Edit Note", use_container_width=True):
             st.session_state["md_AI_output"] = st.text_area(
                 "Edit the note below:",
