@@ -662,8 +662,12 @@
 
                         function updateFlashcard() {
                             const flashcard = flashcards[currentIndex];
-                            termElement.textContent = flashcard.term;
-                            definitionElement.textContent = flashcard.definition;
+                            const parsedTerm = marked.parse(flashcard.term);
+                            const parsedDefinition = marked.parse(flashcard.definition);
+                        
+                            termElement.innerHTML = parsedTerm;
+                            definitionElement.innerHTML = parsedDefinition;
+                            
                             definitionElement.style.display = 'none';
                             showAnswerButton.textContent = 'Show Answer';
                             questionNumberElement.textContent = `Question ${currentIndex + 1} out of ${flashcards.length}`;
