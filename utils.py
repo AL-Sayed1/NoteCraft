@@ -527,9 +527,3 @@ code { font-family: 'Courier New', Courier, monospace; }
         },
     )
     return pdf_data
-
-
-def save_note():
-    st.session_state["md_AI_output"] = st.session_state["edited_note"]
-    st.session_state["md_output"] = md_image_format(st.session_state["md_AI_output"])
-    st.success("Note Updated!")

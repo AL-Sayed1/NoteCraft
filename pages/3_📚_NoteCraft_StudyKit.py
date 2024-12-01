@@ -155,17 +155,6 @@ def main():
         st.markdown(st.session_state["md_output"], unsafe_allow_html=True)
         st.markdown("# Flashcards:")
         utils.display_flashcards(st.session_state["flashcard_output"])
-        if "md_AI_output" in st.session_state:
-            if st.button("Edit Note", use_container_width=True):
-                st.session_state["md_AI_output"] = st.text_area(
-                    "Edit the note below:",
-                    st.session_state["md_AI_output"],
-                    height=300,
-                    on_change=utils.save_note,
-                )
-            
-            if st.button("Update Note", use_container_width=True):
-                utils.save_note()
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],
@@ -185,56 +174,83 @@ def main():
             use_container_width=True,
         )
         col1, col2 = st.columns([3, 1])
-        usr_suggestion = col1.chat_input("Edit the note so that...")
-        edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
-        if usr_suggestion:
-            if edit_what == "Note":
-                if "md_AI_output" in st.session_state:
-                    st.session_state["md_AI_output"] = st.session_state["worker"].edit(
-                        task="edit_note",
-                        text=st.session_state["md_AI_output"],
-                        request=usr_suggestion,
-                    )
-                else:
-                    st.error(
-                        "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
-                    )
-                    st.stop()
-                st.session_state["md_output"] = utils.md_image_format(
-                    (
-                        st.session_state["md_AI_output"]
-                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                        else st.session_state["md_AI_output"].content
-                    ),
-                    encoded=True,
-                )
-                st.session_state["output"] = make_studykit(
-                    markdown_content=(st.session_state["md_output"]),
-                    flashcards=st.session_state["flashcard_output"],
-                    encoded_pdf=st.session_state["raw_pdf"],
-                    page_range=pages,
-                )
+        edit_mode = col2.radio("Editing Mode", ["AI Edit", "Manual Edit"])
 
-            elif edit_what == "Flashcards":
+        if edit_mode == "Manual Edit":
+            manual_edit = col1.text_area(
+                "Edit your notes directly:",
+                value=st.session_state["md_AI_output"],
+                height=400
+            )
+            
+            if st.button("Apply Changes", use_container_width=True):
+                st.session_state["md_output"] = utils.md_image_format(manual_edit)
+                st.rerun()
 
-                output = st.session_state["worker"].edit(
-                    task="edit_flashcards",
-                    text=st.session_state["flashcard_output"],
+        if edit_mode == "AI Edit":
+            usr_suggestion = col1.chat_input("Edit the note so that...")
+            if usr_suggestion:
+                st.session_state["md_AI_output"] = st.session_state["worker"].edit(
+                    task="edit_note",
+                    text=st.session_state["md_output"],
                     request=usr_suggestion,
                 )
-                st.session_state["flashcard_output"] = (
-                    output
+                st.session_state["md_output"] = utils.md_image_format(
+                    st.session_state["md_AI_output"]
                     if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                    else output.content
+                    else st.session_state["md_AI_output"].content
                 )
-                st.session_state["output"] = make_studykit(
-                    markdown_content=(st.session_state["md_output"]),
-                    flashcards=st.session_state["flashcard_output"],
-                    encoded_pdf=st.session_state["raw_pdf"],
-                    page_range=pages,
-                )
+                st.rerun()
 
-            st.rerun()
+            edit_what = col2.selectbox(label="Edit", options=["Note", "Flashcards"])
+            if usr_suggestion:
+                if edit_what == "Note":
+                    if "md_AI_output" in st.session_state:
+                        st.session_state["md_AI_output"] = st.session_state["worker"].edit(
+                            task="edit_note",
+                            text=st.session_state["md_AI_output"],
+                            request=usr_suggestion,
+                        )
+                    else:
+                        st.error(
+                            "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
+                        )
+                        st.stop()
+                    st.session_state["md_output"] = utils.md_image_format(
+                        (
+                            st.session_state["md_AI_output"]
+                            if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                            else st.session_state["md_AI_output"].content
+                        ),
+                        encoded=True,
+                    )
+                    st.session_state["output"] = make_studykit(
+                        markdown_content=(st.session_state["md_output"]),
+                        flashcards=st.session_state["flashcard_output"],
+                        encoded_pdf=st.session_state["raw_pdf"],
+                        page_range=pages,
+                    )
+
+                elif edit_what == "Flashcards":
+
+                    output = st.session_state["worker"].edit(
+                        task="edit_flashcards",
+                        text=st.session_state["flashcard_output"],
+                        request=usr_suggestion,
+                    )
+                    st.session_state["flashcard_output"] = (
+                        output
+                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                        else output.content
+                    )
+                    st.session_state["output"] = make_studykit(
+                        markdown_content=(st.session_state["md_output"]),
+                        flashcards=st.session_state["flashcard_output"],
+                        encoded_pdf=st.session_state["raw_pdf"],
+                        page_range=pages,
+                    )
+
+                st.rerun()
 
 
 if __name__ == "__main__":

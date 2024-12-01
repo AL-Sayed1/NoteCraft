@@ -110,32 +110,33 @@ def main():
                 use_container_width=True,
             )
 
-        usr_suggestion = st.chat_input("Edit the note so that...")
-        if usr_suggestion:
+        edit_mode = st.radio("Editing Mode", ["AI Edit", "Manual Edit"])
 
-            st.session_state["md_AI_output"] = st.session_state["worker"].edit(
-                task="edit_note",
-                text=st.session_state["md_output"],
-                request=usr_suggestion,
+        if edit_mode == "Manual Edit":
+            manual_edit = st.text_area(
+                "Edit your notes directly:",
+                value=st.session_state["md_output"],
+                height=400
             )
-            st.session_state["md_output"] = utils.md_image_format(
-                st.session_state["md_AI_output"]
-                if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                else st.session_state["md_AI_output"].content
-            )
-            st.rerun()
+            
+            if st.button("Apply Changes", use_container_width=True):
+                st.session_state["md_output"] = utils.md_image_format(manual_edit)
+                st.rerun()
 
-        if "md_AI_output" not in st.session_state:
-            st.session_state["md_AI_output"] = st.session_state["md_output"]
-        if st.button("Edit Note", use_container_width=True):
-            st.session_state["md_AI_output"] = st.text_area(
-                "Edit the note below:",
-                st.session_state["md_AI_output"],
-                height=300,
-                on_change=utils.save_note,
-            )
-            if st.button("Update Note", use_container_width=True):
-                utils.save_note()
+        if edit_mode == "AI Edit":
+            usr_suggestion = st.chat_input("Edit the note so that...")
+            if usr_suggestion:
+                st.session_state["md_AI_output"] = st.session_state["worker"].edit(
+                    task="edit_note",
+                    text=st.session_state["md_output"],
+                    request=usr_suggestion,
+                )
+                st.session_state["md_output"] = utils.md_image_format(
+                    st.session_state["md_AI_output"]
+                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                    else st.session_state["md_AI_output"].content
+                )
+                st.rerun()
 
 
 if __name__ == "__main__":
