@@ -9,38 +9,45 @@ import utils
 from langchain_community.chat_models import ChatOpenAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, GoogleGenerativeAI
 
+
 def get_conversation_chain(text):
     text_splitter = CharacterTextSplitter(
         separator="\n", chunk_size=1000, chunk_overlap=200, length_function=len
     )
     text_chunks = text_splitter.split_text(text)
 
-    if st.session_state["cookies"].get("model") == "GPT-4o-mini" and st.session_state["cookies"].get("OPENAI_API_KEY"):
+    if st.session_state["cookies"].get("model") == "GPT-4o-mini" and st.session_state[
+        "cookies"
+    ].get("OPENAI_API_KEY"):
         embeddings = OpenAIEmbeddings(
             model="text-embedding-3-small",
             api_key=st.session_state["cookies"]["OPENAI_API_KEY"],
         )
         llm = ChatOpenAI(
-                model="gpt-4o-mini",
-                api_key=st.session_state["cookies"]["OPENAI_API_KEY"],
-            )
-    elif st.session_state["cookies"].get("model") == "Gemini-1.5" and st.session_state["cookies"].get("GOOGLE_API_KEY"):
+            model="gpt-4o-mini",
+            api_key=st.session_state["cookies"]["OPENAI_API_KEY"],
+        )
+    elif st.session_state["cookies"].get("model") == "Gemini-1.5" and st.session_state[
+        "cookies"
+    ].get("GOOGLE_API_KEY"):
         embeddings = GoogleGenerativeAIEmbeddings(
             model="models/embedding-001",
-            google_api_key=st.session_state["cookies"]["GOOGLE_API_KEY"]
+            google_api_key=st.session_state["cookies"]["GOOGLE_API_KEY"],
         )
         llm = GoogleGenerativeAI(
-                    model="gemini-1.5-pro",
-                    api_key=st.session_state["cookies"]["GOOGLE_API_KEY"],
-                )
+            model="gemini-1.5-pro",
+            api_key=st.session_state["cookies"]["GOOGLE_API_KEY"],
+        )
     else:
-        st.error("You don't have access to the selected model. [Get access here](/get_access).")
+        st.error(
+            "You don't have access to the selected model. [Get access here](/get_access)."
+        )
         return
-        
+
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
 
     prompt = """
-    You are a chatbot that answers the students questions about the context they provide which is a PDF file, and you will reply with markdown.
+    You are a teacher that answers the students questions about the context they provide which is a PDF file, and you will reply in markdown and explain using easy terms, giving examples etc...
                                         
     <context>
     {context}
@@ -106,9 +113,6 @@ def main():
     utils.universal_setup(
         page_title="Ask My PDF", page_icon="🔍", upload_file_types=["pdf"]
     )
-    #if st.session_state["cookies"].get("model") != "GPT-4o-mini":
-    #    st.error("Ask PDF is only supported by GPT-4o-mini model.")
-    #    st.stop()
 
     if (
         "conversation" not in st.session_state
@@ -118,16 +122,18 @@ def main():
             """
             this a chatbot that answers the students questions based on the provided document.
 
-            **How to use**: Just upload a PDF file, press process, and start asking questions!
+            **How to use**: Just upload a PDF file, press process, and start asking questions right away!
             """
         )
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
-
-    with st.sidebar:
-        if st.button("Process", use_container_width=True):
+    if st.sidebar.button("process", use_container_width=True):
+        if st.session_state.get("file") is None:
+            st.error("Please upload a PDF file first.")
+            return
+        else:
             try:
                 with st.spinner("Processing"):
                     # Extract text from pdf
@@ -136,12 +142,13 @@ def main():
                         page_range=None,
                     )
 
+                    # Get conversation chain
                     st.session_state.conversation = get_conversation_chain(raw_text)
-
                     st.success("Done! You can now start chatting.")
             except AttributeError:
                 st.error("Please upload a valid PDF file.")
                 return
+
     user_input = st.chat_input(placeholder="Ask me anything")
     if user_input:
         handle_user_input(user_input)

@@ -180,9 +180,9 @@ def main():
             manual_edit = col1.text_area(
                 "Edit your notes directly:",
                 value=st.session_state["md_AI_output"],
-                height=400
+                height=400,
             )
-            
+
             if st.button("Apply Changes", use_container_width=True):
                 st.session_state["md_output"] = utils.md_image_format(manual_edit)
                 st.rerun()
@@ -206,7 +206,9 @@ def main():
             if usr_suggestion:
                 if edit_what == "Note":
                     if "md_AI_output" in st.session_state:
-                        st.session_state["md_AI_output"] = st.session_state["worker"].edit(
+                        st.session_state["md_AI_output"] = st.session_state[
+                            "worker"
+                        ].edit(
                             task="edit_note",
                             text=st.session_state["md_AI_output"],
                             request=usr_suggestion,

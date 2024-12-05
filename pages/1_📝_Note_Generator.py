@@ -116,9 +116,9 @@ def main():
             manual_edit = st.text_area(
                 "Edit your notes directly:",
                 value=st.session_state["md_output"],
-                height=400
+                height=400,
             )
-            
+
             if st.button("Apply Changes", use_container_width=True):
                 st.session_state["md_output"] = utils.md_image_format(manual_edit)
                 st.rerun()
