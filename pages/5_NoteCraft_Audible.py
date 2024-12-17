@@ -4,14 +4,13 @@ import utils
 from openai import OpenAI
 import base64
 
-def get_podcast(raw_text):
+def get_audible(raw_text, voice="alloy"):
     client = OpenAI(api_key=st.session_state["cookies"]["OPENAI_API_KEY"])
-
 
     completion = client.chat.completions.create(
         model="gpt-4o-audio-preview",
         modalities=["text", "audio"],
-        audio={"voice": "alloy", "format": "wav"},
+        audio={"voice": voice, "format": "wav"},
         messages=[
         {
             "role": "system",
@@ -30,19 +29,28 @@ def main():
         upload_file_types=["pdf"],
         worker=False,
     )
+    if st.session_state["cookies"].get("model") != "GPT-4o-mini":
+        st.error(
+            "Audible only works with openAI models."
+        )
+        st.stop()
     if "audio_output" not in st.session_state:
         st.markdown(
             """
-        ### How to Generate Notes
-        1. **Upload your PDF**: Use the file uploader in the sidebar to upload your document.
-        2. **Select the word range**: Adjust the slider to set the desired word range for the notes.
-        3. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate notes from.
-        4. **Click 'Process'**: Hit the 'Process' button to generate your notes.
-        5. **Download or Edit**: Once the notes are generated, you can download them as a Markdown file or edit them using the chat input.
+        ### NoteCraft Audible
+        NoteCraft Audible is a tool that generates a podcast from a PDF file.
+        
+        ### How to generate an Audible:
+        1. Upload a PDF file.
+        2. Select the voice of the speaker.
+        3. Select the pages to generate the Audible from.
+        4. Click on the "Process" button.
+        5. The Audible will be generated and you can listen to it or download it.
         """
         )
 
     with st.sidebar:
+        st.selectbox("Select the voice of the speaker:", ["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
         process = st.button("Process", use_container_width=True)
     if st.session_state["file"]:
         file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
@@ -74,7 +82,7 @@ def main():
                         st.session_state["file"], page_range=pages
                     )
                     try:
-                        st.session_state["audio_output"] =  get_podcast(raw_text)
+                        st.session_state["audio_output"] =  get_audible(raw_text)
                     except KeyError:
                         st.error(
                             "You don't have access to the selected model. [Get access here](/get_access)."
@@ -86,13 +94,13 @@ def main():
                         if st.session_state["file"]
                         else "note"
                     )
-                    st.success("podcast generated!")
+                    st.success("Audible generated!")
 
     if "audio_output" in st.session_state:
         st.audio(st.session_state["audio_output"], format='audio/wav')
         with st.sidebar:
             st.download_button(
-                label="Download Podcast",
+                label="Download Audible",
                 data=(st.session_state["audio_output"]),
                 file_name=f"{st.session_state['file_name']} - NoteCraft Audible.wav",
                 mime="text/markdown",
