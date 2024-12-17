@@ -24,7 +24,7 @@ def get_audible(raw_text, voice="alloy"):
 
 def main():
     utils.universal_setup(
-        page_title="Note Generator",
+        page_title="Audible",
         page_icon="🎙️",
         upload_file_types=["pdf"],
         worker=False,
