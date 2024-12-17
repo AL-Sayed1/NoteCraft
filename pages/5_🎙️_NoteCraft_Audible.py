@@ -14,7 +14,7 @@ def get_audible(raw_text, voice="alloy"):
         messages=[
         {
             "role": "system",
-            "content": f"You are tasked with creating a podcast from this text. Make sure to include all the main ideas and concepts in the text. Make it as engaging as possible and make sure the listenor understands the text. Here is the text: {raw_text}"
+            "content": f"You are tasked with creating a podcast titled 'NoteCraft Audible' from this text. Make sure to include all the main ideas and concepts in the text. Make it as engaging as possible and make sure the listenor understands the text. Here is the text: {raw_text}"
         }
     ]
     )
