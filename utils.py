@@ -18,6 +18,7 @@ import markdown
 import pdfkit
 
 
+
 def universal_setup(
     page_title="Home", page_icon="📝", upload_file_types=[], worker=False
 ):
