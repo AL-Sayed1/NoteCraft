@@ -5,24 +5,52 @@ import utils
 
 
 def make_studykit(markdown_content, flashcards, encoded_pdf, page_range):
-    flashcards = utils.clean_flashcards(flashcards)
+    unwanted_headers = {
+        "Col1": ["question", "questions", "term", "terms"],
+        "Col2": ["answer", "answers", "definition", "definitions"],
+    }
+    rows = flashcards.split("\n")
 
+    headers = rows[0].split("\t")
+    if (
+        headers[0].lower() in unwanted_headers["Col1"]
+        and headers[1].lower() in unwanted_headers["Col2"]
+    ):
+        rows = rows[1:]
+        flashcards = "\n".join(rows)
+
+    if flashcards.startswith("```csv"):
+        flashcards = flashcards[5:].lstrip()
+    elif flashcards.startswith("``` csv"):
+        flashcards = flashcards[6:].lstrip()
+    if flashcards.endswith("```"):
+        flashcards = flashcards[:-3].rstrip()
+    if markdown_content.startswith("```markdown"):
+        markdown_content = markdown_content[11:].lstrip()
+    elif markdown_content.startswith("``` markdown"):
+        markdown_content = markdown_content[12:].lstrip()
+    if markdown_content.endswith("```"):
+        markdown_content = markdown_content[:-3].rstrip()
     markdown_content = markdown_content.replace("`", r"\`")
+    flashcards = flashcards.replace("`", r"\`")
 
-    studkit = f"""note=`^{markdown_content}`^
-flashcards=`^{flashcards.strip()}`^
-encoded_pdf=`^{encoded_pdf}`^
+    with open("NoteCraft-StudyKit.html", "r") as file:
+        html_template = file.read()
 
-page_range=`^{str(page_range[0])} to {str(page_range[1])}`^"""
+    html_content = html_template.replace("***markdown_content***", markdown_content)
+    html_content = html_content.replace("***flashcards***", flashcards.strip())
+    html_content = html_content.replace("***encoded_pdf***", encoded_pdf)
+    html_content = html_content.replace("***page_range[0]***", str(page_range[0]))
+    html_content = html_content.replace("***page_range[1]***", str(page_range[1]))
 
-    return studkit
+    return html_content
 
 
 def main():
     utils.universal_setup(
         page_title="StudyKit",
         page_icon="📚",
-        upload_file_types=["pdf", "studkit"],
+        upload_file_types=["pdf"],
         worker=True,
     )
     if "md_output" not in st.session_state:
@@ -36,16 +64,7 @@ def main():
         5. **Choose pages (for PDFs)**: Once you uploaded a PDF, select the pages you want to generate the studykit from.
         6. **Click 'Process'**: Hit the 'Process' button to generate your document.
         7. **Download or Edit**: Once the StudyKit is generated, you can download it or edit it using the chat input.
-        8. **Download StudyKit Viewer**: Download the StudyKit viewer to view the StudyKit!
         """
-        )
-    with open("NoteCraft-StudyKit.html", "r") as file:
-        st.download_button(
-            label="Download StudyKit viewer",
-            data=file.read(),
-            file_name="NoteCraft-StudyKit.html",
-            mime="text/html",
-            use_container_width=True,
         )
 
     with st.sidebar:
@@ -77,7 +96,7 @@ def main():
             if st.session_state["file"]
             else "note"
         )
-        if file_extension != ".pdf" and file_extension != ".studkit":
+        if file_extension != ".pdf":
             st.error("The file is not a valid PDF file.")
             st.stop()
         elif file_extension == ".pdf":
@@ -137,14 +156,6 @@ def main():
                         page_range=pages,
                     )
                     st.success("StudyKit Crafted!")
-        elif file_extension == ".studkit":
-            file_content = st.session_state["file"].getvalue().decode("utf-8")
-            (
-                st.session_state["md_output"],
-                st.session_state["flashcard_output"],
-            ) = flashcards = utils.parse_studkit(file_content)
-            st.session_state["output"] = file_content
-            st.success("StudyKit Loaded!")
 
     if (
         "md_output" in st.session_state
@@ -158,7 +169,7 @@ def main():
         st.download_button(
             label="Download Study kit",
             data=st.session_state["output"],
-            file_name=f"{st.session_state['file_name']}.studkit",
+            file_name=f"{st.session_state['file_name']} - StudyKit.html",
             mime="application/studykit",
             use_container_width=True,
         )
@@ -213,11 +224,7 @@ def main():
                             text=st.session_state["md_AI_output"],
                             request=usr_suggestion,
                         )
-                    else:
-                        st.error(
-                            "Cannot edit a note loaded from a studkit file, you can only edit flashcards from a studkit file."
-                        )
-                        st.stop()
+                    
                     st.session_state["md_output"] = utils.md_image_format(
                         (
                             st.session_state["md_AI_output"]
