@@ -92,7 +92,7 @@ def handle_user_input(user_prompt):
             {"input": user_prompt, "chat_history": chat_history}
         )
     except AttributeError:
-        st.error("Please upload a PDF file first.")
+        st.chat_message("assistant").write("Please upload a PDF file and press process before you start chatting.")
         return
     st.session_state.chat_history.append({"role": "user", "content": user_prompt})
     st.session_state.chat_history.append({"role": "ai", "content": response["answer"]})
@@ -131,8 +131,7 @@ def main():
         st.session_state.chat_history = []
     if st.sidebar.button("process", use_container_width=True):
         if st.session_state.get("file") is None:
-            st.error("Please upload a PDF file first.")
-            return
+            st.chat_message("assistant").write("Please upload a PDF file first.")
         else:
             try:
                 with st.spinner("Processing"):

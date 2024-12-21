@@ -8,6 +8,7 @@ def main():
         page_title="Note Generator",
         page_icon="📝",
         upload_file_types=["pdf", "md"],
+        yt_upload = True,
         worker=True,
     )
     if "md_output" not in st.session_state:
@@ -32,23 +33,20 @@ def main():
         )
         images = st.checkbox("Include images in the notes", value=True)
         process = st.button("Process", use_container_width=True)
-    if st.session_state["file"]:
-        file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
-        st.session_state["file_name"] = (
-            os.path.splitext(st.session_state["file"].name)[0]
-            if st.session_state["file"]
-            else "note"
-        )
+
+    if st.session_state["upload"][0] == "file" and st.session_state["upload"][1] is not None:
+        st.session_state["file_name"], file_extension = os.path.splitext(st.session_state["upload"][1].name)
+        file_extension = file_extension.lower()
         if file_extension != ".pdf" and file_extension != ".md":
             st.error("The file is not a valid PDF file nor a Markdown file.")
             st.stop()
         elif file_extension == ".md":
             st.session_state["md_output"] = (
-                st.session_state["file"].getvalue().decode("utf-8")
+                st.session_state["upload"][1].getvalue().decode("utf-8")
             )
 
         elif file_extension == ".pdf":
-            max_pages = utils.page_count(st.session_state["file"])
+            max_pages = utils.page_count(st.session_state["upload"][1])
             if max_pages != 1:
                 with st.sidebar:
                     pages = st.slider(
@@ -61,32 +59,35 @@ def main():
                 pages = (1, 1)
                 with st.sidebar:
                     st.write("Only one page in the document")
-            if process:
-                with st.spinner("Processing"):
-                    raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=pages
-                    )
-                    try:
-                        st.session_state["md_AI_output"] = st.session_state[
-                            "worker"
-                        ].get_note(raw_text, word_range, images)
-                    except KeyError:
-                        st.error(
-                            "You don't have access to the selected model. [Get access here](/get_access)."
-                        )
-                        st.stop()
+        
+    if process:
+        with st.spinner("Processing"):
+            if st.session_state["upload"][0] == "file" and st.session_state["upload"][1] is not None:
+                raw_text = utils.get_pdf_text(
+                    st.session_state["upload"][1], page_range=pages
+                )
+            elif st.session_state["upload"][0] == "youtube" and st.session_state["upload"][1] is not None:
+                raw_text = utils.fetch_transcript(st.session_state["upload"][1])
+                st.session_state["file_name"] = "NoteCraft Video Notes"
+            else:
+                st.write(st.session_state["upload"])
+                st.error("No file uploaded")
+                st.stop()
+            try:
+                st.session_state["md_AI_output"] = st.session_state["worker"].get_note(raw_text, word_range, images)
+            except KeyError:
+                st.error(
+                    "You don't have access to the selected model. [Get access here](/get_access)."
+                )
+                st.stop()
 
-                    st.session_state["md_output"] = utils.md_image_format(
-                        st.session_state["md_AI_output"]
-                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                        else st.session_state["md_AI_output"].content
-                    )
-                    st.session_state["file_name"] = (
-                        os.path.splitext(st.session_state["file"].name)[0]
-                        if st.session_state["file"]
-                        else "note"
-                    )
-                    st.success("Note Crafted!")
+            st.session_state["md_output"] = utils.md_image_format(
+                st.session_state["md_AI_output"]
+                if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                else st.session_state["md_AI_output"].content
+            )
+            
+            st.success("Note Crafted!")
 
     if "md_output" in st.session_state:
         st.markdown("# Notes:")

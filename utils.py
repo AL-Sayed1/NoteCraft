@@ -16,11 +16,12 @@ import requests
 from google.api_core.exceptions import ResourceExhausted
 import markdown
 import pdfkit
+from youtube_transcript_api import YouTubeTranscriptApi
 
 
 
 def universal_setup(
-    page_title="Home", page_icon="📝", upload_file_types=[], worker=False
+    page_title="Home", page_icon="📝", upload_file_types=[], yt_upload=False, worker=False
 ):
     st.set_page_config(
         page_title=f"NoteCraft AI - {page_title}", page_icon=page_icon, layout="wide"
@@ -47,9 +48,16 @@ def universal_setup(
     if worker and "worker" not in st.session_state:
         st.session_state["worker"] = LLMAgent(st.session_state["cookies"])
     if upload_file_types:
-        st.session_state["file"] = st.sidebar.file_uploader(
-            "upload your file", type=upload_file_types
-        )
+        if yt_upload:
+            upload = st.sidebar.selectbox("Upload Type", ["File", "YouTube Video"])
+            st.session_state["upload"] = ("file", st.sidebar.file_uploader(
+                "upload your file", type=upload_file_types
+            )) if upload == "File" else ("youtube", st.sidebar.text_input("YouTube Video URL"))
+        else:
+            st.session_state["file"] = st.sidebar.file_uploader(
+                "upload your file", type=upload_file_types
+            )
+
 
 
 class LLMAgent:
@@ -323,6 +331,21 @@ def get_pdf_text(pdf, page_range: tuple):
 
     return text
 
+
+def fetch_transcript(url):
+    if "watch?v=" in url:
+        video_id = url.split("watch?v=")[1].split("&")[0]
+    elif "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[1].split("?")[0]
+    else:
+        st.error("Invalid YouTube URL")
+        st.stop()
+    try:
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        return "\n".join([item['text'] for item in transcript])
+    except:
+        st.error(f"Error fetching transcript, the video might have disabled captions.")
+        st.stop()
 
 def page_count(pdf):
     try:
