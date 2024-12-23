@@ -352,7 +352,8 @@ def page_count(pdf):
         pdf_reader = PdfReader(pdf)
         return len(pdf_reader.pages)
     except:
-        return "Error: EOF marker not found in the PDF file."
+        st.error("Error reading the PDF file.")
+        st.stop()
 
 
 def clean_flashcards(flashcards):

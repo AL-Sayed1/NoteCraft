@@ -9,6 +9,7 @@ def main():
         page_icon="📄",
         upload_file_types=["pdf", "csv"],
         worker=True,
+        yt_upload=True,
     )
     if "f_output" not in st.session_state:
         st.markdown(
@@ -37,22 +38,20 @@ def main():
 
         process = st.button("Process", use_container_width=True)
 
-    if st.session_state["file"]:
-        file_extension = os.path.splitext(st.session_state["file"].name)[1].lower()
-        st.session_state["file_name"] = (
-            os.path.splitext(st.session_state["file"].name)[0]
-            if st.session_state["file"]
-            else "note"
-        )
+
+    if st.session_state["upload"][0] == "file" and st.session_state["upload"][1] is not None:
+        st.session_state["file_name"], file_extension = os.path.splitext(st.session_state["upload"][1].name)
+        file_extension = file_extension.lower()
+
         if file_extension != ".pdf" and file_extension != ".csv":
             st.error("The file is not a valid PDF file nor a CSV file.")
             st.stop()
         elif file_extension == ".csv":
             utils.display_flashcards(
-                st.session_state["file"].getvalue().decode("utf-8")
+                st.session_state["upload"][1].getvalue().decode("utf-8")
             )
         elif file_extension == ".pdf":
-            max_pages = utils.page_count(st.session_state["file"])
+            max_pages = utils.page_count(st.session_state["upload"][1])
             if max_pages != 1:
                 with st.sidebar:
                     pages = st.slider(
@@ -65,77 +64,69 @@ def main():
                 pages = (1, 1)
                 with st.sidebar:
                     st.write("Only one page in the document")
-            if process:
-                with st.spinner("Processing"):
-                    st.session_state.raw_text = utils.get_pdf_text(
-                        st.session_state["file"], page_range=pages
-                    )
-                    try:
-                        output = st.session_state["worker"].get_flashcards(
-                            flashcard_range=flashcard_range,
-                            task=flashcard_type,
-                            transcript=st.session_state.raw_text,
-                        )
-                    except (KeyError, UnboundLocalError):
-                        st.error(
-                            "You don't have access to the selected model. [Get access here](/get_access)."
-                        )
-                        st.stop()
-                    st.session_state["f_output"] = (
-                        output
-                        if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                        else output.content
-                    )
-
-        if "f_output" in st.session_state:
-            utils.display_flashcards(st.session_state["f_output"])
-
-            pdf_name = os.path.splitext(st.session_state["file"].name)[0]
-
-            with st.sidebar:
-                st.download_button(
-                    label=f"Download flashcards as .csv",
-                    data=st.session_state["f_output"],
-                    file_name=f"{pdf_name}.csv",
-                    mime="text/csv",
+    if process:
+        with st.spinner("Processing"):
+            if st.session_state["upload"][0] == "file" and st.session_state["upload"][1] is not None:
+                st.session_state.raw_text = utils.get_pdf_text(
+                    st.session_state["upload"][1], page_range=pages
                 )
-                st.download_button(
-                    label="Download Paper Flashcards (PDF)",
-                    data=utils.paper(
-                        header_text=st.session_state["file_name"],
-                        flashcards=st.session_state["f_output"],
-                    ),
-                    file_name=f"{st.session_state['file_name']} - Flashcards.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
+            elif st.session_state["upload"][0] == "youtube" and st.session_state["upload"][1] is not None:
+                st.session_state.raw_text = utils.fetch_transcript(st.session_state["upload"][1])
+                st.session_state["file_name"] = "NoteCraft Video Notes"
+            try:
+                output = st.session_state["worker"].get_flashcards(
+                    flashcard_range=flashcard_range,
+                    task=flashcard_type,
+                    transcript=st.session_state.raw_text,
                 )
-                st.markdown(
-                    """
-                <style>
-                    .stTextInput {
-                    position: fixed;
-                    bottom: 20px;
-                }
-                </style>
-                """,
-                    unsafe_allow_html=True,
+            except (KeyError, UnboundLocalError):
+                st.error(
+                    "You don't have access to the selected model. [Get access here](/get_access)."
                 )
-
-            usr_suggestion = st.text_input(
-                label=" ", placeholder="Edit the flashcards so that..."
+                st.stop()
+            st.session_state["f_output"] = (
+                output
+                if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                else output.content
             )
-            if usr_suggestion:
-                output = st.session_state["worker"].edit(
-                    task="edit_flashcards",
-                    request=usr_suggestion,
-                    text=st.session_state["f_output"],
-                )
-                st.session_state["f_output"] = (
-                    output
-                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                    else output.content
-                )
-                st.rerun()
+
+    if "f_output" in st.session_state:
+        utils.display_flashcards(st.session_state["f_output"])
+        st.download_button(
+            label=f"Download flashcards as .csv",
+            data=st.session_state["f_output"],
+            file_name=f"{st.session_state["file_name"]}.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+        st.download_button(
+            label="Download Paper Flashcards (PDF)",
+            data=utils.paper(
+                header_text=st.session_state["file_name"],
+                flashcards=st.session_state["f_output"],
+            ),
+            file_name=f"{st.session_state['file_name']} - Flashcards.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+
+
+        usr_suggestion = st.chat_input(
+            placeholder="Edit the flashcards so that..."
+        )
+        if usr_suggestion:
+            output = st.session_state["worker"].edit(
+                task="edit_flashcards",
+                request=usr_suggestion,
+                text=st.session_state["f_output"],
+            )
+            st.session_state["f_output"] = (
+                output
+                if st.session_state["cookies"]["model"] == "Gemini-1.5"
+                else output.content
+            )
+            st.session_state["current_question_index"] = 0
+            st.rerun()
 
 
 if __name__ == "__main__":
