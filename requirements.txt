@@ -15,3 +15,4 @@ Markdown==3.7
 pdfkit==1.0.0
 tiktoken==0.8.0
 faiss-cpu==1.9.0.post1
+youtube-transcript-api==0.6.3
