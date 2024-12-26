@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_cookies_manager import EncryptedCookieManager
+from st_cookies_manager import EncryptedCookieManager
 import csv
 import re
 from pdf2image import convert_from_bytes
