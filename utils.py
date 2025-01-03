@@ -10,6 +10,7 @@ from langchain_google_genai import GoogleGenerativeAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import re
 from duckduckgo_search import DDGS
+from duckduckgo_search.exceptions import RatelimitException
 from langchain_community.chat_models import ChatOpenAI
 import base64
 import requests
@@ -17,7 +18,7 @@ from google.api_core.exceptions import ResourceExhausted
 import markdown
 import pdfkit
 from youtube_transcript_api import YouTubeTranscriptApi
-
+from time import sleep
 
 
 def universal_setup(
@@ -266,25 +267,37 @@ class LLMAgent:
             st.stop()
 
 
+import time
+from duckduckgo_search.exceptions import RatelimitException
+
 def md_image_format(md, encoded=False):
     def replace_with_image(match):
         description = match.group(1).strip()
-        results = ddgs.images(keywords=description, max_results=5)
-        for result in results:
-            image_url = result["image"]
-            if encoded:
-                try:
-                    response = requests.get(image_url)
-                    response.raise_for_status()
-                    image_data = response.content
-                    image_format = image_url.split(".")[-1]
-                    base64_image = base64.b64encode(image_data).decode("utf-8")
-                    return f"![{description}](data:image/{image_format};base64,{base64_image})"
-                except requests.RequestException as e:
-                    continue
-            else:
-                return f"![{description}]({image_url})"
-        return "\n"
+        retry_attempts = 5
+        for attempt in range(retry_attempts):
+            try:
+                results = ddgs.images(keywords=description, max_results=5)
+                for result in results:
+                    image_url = result["image"]
+                    if encoded:
+                        try:
+                            response = requests.get(image_url)
+                            response.raise_for_status()
+                            image_data = response.content
+                            image_format = image_url.split(".")[-1]
+                            base64_image = base64.b64encode(image_data).decode("utf-8")
+                            return f"![{description}](data:image/{image_format};base64,{base64_image})"
+                        except requests.RequestException as e:
+                            continue
+                    else:
+                        return f"![{description}]({image_url})"
+                return "\n"
+            except RatelimitException:
+                if attempt < retry_attempts - 1:
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    st.error("Rate limit exceeded. Please try again later.")
+                    st.stop()
 
     pattern = r"<<\s*(.*?)\s*>>"
     ddgs = DDGS()
