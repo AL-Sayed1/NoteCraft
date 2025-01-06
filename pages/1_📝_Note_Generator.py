@@ -74,7 +74,7 @@ def main():
                 st.error("No file uploaded")
                 st.stop()
             try:
-                st.session_state["md_AI_output"] = str(st.session_state["worker"].get_note(raw_text, word_range, images))
+                st.session_state["md_AI_output"] = st.session_state["worker"].get_note(raw_text, word_range, images)
             except KeyError:
                 st.error(
                     "You don't have access to the selected model. [Get access here](/get_access)."
@@ -86,7 +86,7 @@ def main():
                 if st.session_state["cookies"]["model"] == "Gemini-1.5"
                 else st.session_state["md_AI_output"].content
             )
-            
+
             st.success("Note Crafted!")
 
     if "md_output" in st.session_state:
