@@ -301,7 +301,7 @@ def md_image_format(md, encoded=False):
 
     pattern = r"<<\s*(.*?)\s*>>"
     ddgs = DDGS()
-    modified_md = re.sub(pattern, replace_with_image, md, flags=re.DOTALL)
+    modified_md = re.sub(pattern, replace_with_image, str(md), flags=re.DOTALL)
     return modified_md
 
 
