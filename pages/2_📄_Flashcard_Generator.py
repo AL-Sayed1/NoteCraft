@@ -74,7 +74,7 @@ def main():
                 st.session_state.raw_text = utils.fetch_transcript(st.session_state["upload"][1])
                 st.session_state["file_name"] = "NoteCraft Video Notes"
             try:
-                output = st.session_state["worker"].get_flashcards(
+                st.session_state["f_output"] = st.session_state["worker"].get_flashcards(
                     flashcard_range=flashcard_range,
                     task=flashcard_type,
                     transcript=st.session_state.raw_text,
@@ -84,11 +84,6 @@ def main():
                     "You don't have access to the selected model. [Get access here](/get_access)."
                 )
                 st.stop()
-            st.session_state["f_output"] = (
-                output
-                if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                else output.content
-            )
 
     if "f_output" in st.session_state:
         utils.display_flashcards(st.session_state["f_output"])
@@ -115,16 +110,12 @@ def main():
             placeholder="Edit the flashcards so that..."
         )
         if usr_suggestion:
-            output = st.session_state["worker"].edit(
+            st.session_state["f_output"] = st.session_state["worker"].edit(
                 task="edit_flashcards",
                 request=usr_suggestion,
                 text=st.session_state["f_output"],
             )
-            st.session_state["f_output"] = (
-                output
-                if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                else output.content
-            )
+
             st.session_state["current_question_index"] = 0
             st.rerun()
 

@@ -24,6 +24,7 @@ def main():
         )
 
     with st.sidebar:
+        st.write(st.session_state["cookies"]["model"])
         word_range = st.slider(
             "Select the word range",
             value=(300, 500),
@@ -83,8 +84,6 @@ def main():
 
             st.session_state["md_output"] = utils.md_image_format(
                 st.session_state["md_AI_output"]
-                if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                else st.session_state["md_AI_output"].content
             )
 
             st.success("Note Crafted!")
@@ -134,8 +133,6 @@ def main():
                 )
                 st.session_state["md_output"] = utils.md_image_format(
                     st.session_state["md_AI_output"]
-                    if st.session_state["cookies"]["model"] == "Gemini-1.5"
-                    else st.session_state["md_AI_output"].content
                 )
                 st.rerun()
 

@@ -206,7 +206,7 @@ class LLMAgent:
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
             st.stop()
-        return self.note
+        return str(self.note.content)
 
     def get_flashcards(
         self, flashcard_range: tuple, task="Term --> Definition", transcript=None
@@ -254,12 +254,12 @@ class LLMAgent:
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
             st.stop()
-        return self.flashcards
+        return str(self.flashcards.content)
 
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
         try:
-            return edit_chain.invoke({"request": request, "text": text})
+            return str(edit_chain.invoke({"request": request, "text": text}).content)
         except ResourceExhausted:
             st.error(
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
