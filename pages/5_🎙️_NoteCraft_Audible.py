@@ -26,7 +26,7 @@ def main():
     utils.universal_setup(
         page_title="Audible",
         page_icon="🎙️",
-        upload_file_types=["pdf"],
+        upload_file_types=["pdf", "docx", "pptx"],
         worker=False,
     )
     if st.session_state["cookies"].get("model") != "GPT-4o-mini":
@@ -59,10 +59,8 @@ def main():
             if st.session_state["file"]
             else "note"
         )
-        if file_extension != ".pdf":
-            st.error("The file is not a valid PDF file nor a Markdown file.")
-            st.stop()
-        elif file_extension == ".pdf":
+            
+        if file_extension in [".pdf", ".docx", ".pptx"]:
             max_pages = utils.page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
@@ -78,7 +76,7 @@ def main():
                     st.write("Only one page in the document")
             if process:
                 with st.spinner("Processing"):
-                    raw_text = utils.get_pdf_text(
+                    raw_text = utils.get_document_text(
                         st.session_state["file"], page_range=pages
                     )
                     try:
@@ -95,6 +93,9 @@ def main():
                         else "note"
                     )
                     st.success("Audible generated!")
+        else:
+            st.error("The file is not a valid PDF file nor a Markdown file.")
+            st.stop()
 
     if "audio_output" in st.session_state:
         st.audio(st.session_state["audio_output"], format='audio/wav')

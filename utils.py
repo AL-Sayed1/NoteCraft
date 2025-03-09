@@ -18,7 +18,10 @@ from google.api_core.exceptions import ResourceExhausted
 import markdown
 import pdfkit
 from youtube_transcript_api import YouTubeTranscriptApi
-from time import sleep
+import time
+from pptx import Presentation
+from docx import Document
+
 
 
 def universal_setup(
@@ -29,16 +32,6 @@ def universal_setup(
     )
     if page_title and page_title != "Home":
         st.header(f"NoteCraft AI - {page_title}")
-    st.markdown(
-        """
-    <style>
-    .e16jpq800, .ef3psqc6 {
-        display: none;
-    }
-    </style>
-""",
-        unsafe_allow_html=True,
-    )
 
     st.session_state["cookies"] = EncryptedCookieManager(
         prefix=st.secrets["COOKIES_PREFIX"],
@@ -206,7 +199,7 @@ class LLMAgent:
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
             st.stop()
-        return str(self.note.content)
+        return str(self.note) if st.session_state["cookies"]["model"] == "Gemini-1.5" else str(self.note.content)
 
     def get_flashcards(
         self, flashcard_range: tuple, task="Term --> Definition", transcript=None
@@ -254,7 +247,7 @@ class LLMAgent:
                 "API Exhausted, if you are using the free version of the API, you may have reached the limit.\nTry again later.\nIf NoteForge is enabled, try disabling it."
             )
             st.stop()
-        return str(self.flashcards.content)
+        return str(self.flashcards) if st.session_state["cookies"]["model"] == "Gemini-1.5" else str(self.flashcards.content)
 
     def edit(self, task, request, text):
         edit_chain = self._get_chain(task)
@@ -267,7 +260,6 @@ class LLMAgent:
             st.stop()
 
 
-import time
 from duckduckgo_search.exceptions import RatelimitException
 
 def md_image_format(md, encoded=False):
@@ -312,38 +304,74 @@ def get_base64_encoded_pdf(file):
     return encoded_pdf
 
 
-def get_pdf_text(pdf, page_range: tuple):
-    try:
-        pdf_reader = PdfReader(pdf)
-    except Exception as e:
-        return f"There was a problem reading the pdf: {str(e)}"
+def get_document_text(file, page_range: tuple = None):
+    file_extension = file.name.split('.')[-1].lower()
+    
+    if file_extension == 'pdf':
+        try:
+            pdf_reader = PdfReader(file)
+        except Exception as e:
+            return f"There was a problem reading the pdf: {str(e)}"
 
-    if page_range is None:
-        first_page = 1
-        last_page = len(pdf_reader.pages)
-    else:
-        first_page, last_page = page_range
+        if page_range is None:
+            first_page = 1
+            last_page = len(pdf_reader.pages)
+        else:
+            first_page, last_page = page_range
 
-    text = ""
-    for page_num in range(first_page - 1, last_page):
-        page = pdf_reader.pages[page_num]
-        if "/XObject" in page["/Resources"]:
-            xObject = page["/Resources"]["/XObject"].get_object()
-            if any(xObject[obj]["/Subtype"] == "/Image" for obj in xObject):
-                images = convert_from_bytes(
-                    pdf.getvalue(), first_page=page_num + 1, last_page=page_num + 1
-                )
-                for image in images:
-                    image_text = pytesseract.image_to_string(image)
-                    if image_text.strip():
-                        text += image_text + "\n"
+        text = ""
+        for page_num in range(first_page - 1, last_page):
+            page = pdf_reader.pages[page_num]
+            if "/XObject" in page["/Resources"]:
+                xObject = page["/Resources"]["/XObject"].get_object()
+                if any(xObject[obj]["/Subtype"] == "/Image" for obj in xObject):
+                    images = convert_from_bytes(
+                        file.getvalue(), first_page=page_num + 1, last_page=page_num + 1
+                    )
+                    for image in images:
+                        image_text = pytesseract.image_to_string(image)
+                        if image_text.strip():
+                            text += image_text + "\n"
+                else:
+                    text += page.extract_text() + "\n"
             else:
                 text += page.extract_text() + "\n"
+        return text
+
+    elif file_extension == 'pptx':
+        try:
+            presentation = Presentation(file)
+        except Exception as e:
+            return f"There was a problem reading the pptx: {str(e)}"
+
+        if page_range is None:
+            first_slide = 1
+            last_slide = len(presentation.slides)
         else:
-            text += page.extract_text() + "\n"
+            first_slide, last_slide = page_range
 
-    return text
+        text = ""
+        for slide_num in range(first_slide - 1, last_slide):
+            slide = presentation.slides[slide_num]
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    text += shape.text + "\n"
+        return text
 
+    elif file_extension == 'docx':
+        try:
+            document = Document(file)
+        except Exception as e:
+            st.error(f"There was a problem reading the docx: {str(e)}")
+            st.stop()
+        text = ""
+        for paragraph in document.paragraphs:
+            text += paragraph.text + "\n"
+        return text
+
+    else:
+        st.write("Unsupported file type")
+        st.stop()
 
 def fetch_transcript(url):
     if "watch?v=" in url:
@@ -360,12 +388,24 @@ def fetch_transcript(url):
         st.error(f"Error fetching transcript, the video might have disabled captions.")
         st.stop()
 
-def page_count(pdf):
+def page_count(document):
+    """Extract the number of pages in a document (PDF, DOCX, PPTX)."""
+    file_extension = document.name.split('.')[-1].lower()
+    
     try:
-        pdf_reader = PdfReader(pdf)
-        return len(pdf_reader.pages)
-    except:
-        st.error("Error reading the PDF file.")
+        if file_extension == 'pdf':
+            pdf_reader = PdfReader(document)
+            return len(pdf_reader.pages)
+        elif file_extension == 'docx':
+            return 1
+        elif file_extension == 'pptx':
+            presentation = Presentation(document)
+            return len(presentation.slides)
+        else:
+            st.error("Unsupported file type")
+            st.stop()
+    except Exception as e:
+        st.error(f"Error reading the {file_extension.upper()} file: {str(e)}")
         st.stop()
 
 

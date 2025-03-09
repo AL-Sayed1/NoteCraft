@@ -96,10 +96,8 @@ def main():
             if st.session_state["file"]
             else "note"
         )
-        if file_extension != ".pdf":
-            st.error("The file is not a valid PDF file.")
-            st.stop()
-        elif file_extension == ".pdf":
+            
+        if file_extension in [".pdf", ".docx", ".pptx"]:
             max_pages = utils.page_count(st.session_state["file"])
             if max_pages != 1:
                 with st.sidebar:
@@ -115,7 +113,7 @@ def main():
                     st.write("Only one page in the document")
             if process:
                 with st.spinner("Processing"):
-                    raw_text = utils.get_pdf_text(
+                    raw_text = utils.get_document_text(
                         st.session_state["file"],
                         page_range=pages,
                     )
@@ -152,6 +150,9 @@ def main():
                         page_range=pages,
                     )
                     st.success("StudyKit Crafted!")
+        else:
+            st.error("The file is not a valid PDF file.")
+            st.stop()
 
     if (
         "md_output" in st.session_state

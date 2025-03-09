@@ -7,7 +7,7 @@ def main():
     utils.universal_setup(
         page_title="Flashcards Generator",
         page_icon="📄",
-        upload_file_types=["pdf", "csv"],
+        upload_file_types=["pdf", "csv", "docx", "pptx"],
         worker=True,
         yt_upload=True,
     )
@@ -42,15 +42,12 @@ def main():
     if st.session_state["upload"][0] == "file" and st.session_state["upload"][1] is not None:
         st.session_state["file_name"], file_extension = os.path.splitext(st.session_state["upload"][1].name)
         file_extension = file_extension.lower()
-
-        if file_extension != ".pdf" and file_extension != ".csv":
-            st.error("The file is not a valid PDF file nor a CSV file.")
-            st.stop()
-        elif file_extension == ".csv":
+    
+        if file_extension == ".csv":
             utils.display_flashcards(
                 st.session_state["upload"][1].getvalue().decode("utf-8")
             )
-        elif file_extension == ".pdf":
+        elif file_extension in [".pdf", ".docx", ".pptx"]:
             max_pages = utils.page_count(st.session_state["upload"][1])
             if max_pages != 1:
                 with st.sidebar:
@@ -64,10 +61,13 @@ def main():
                 pages = (1, 1)
                 with st.sidebar:
                     st.write("Only one page in the document")
+        else:
+            st.error("The file is not a valid PDF file nor a CSV file.")
+            st.stop()
     if process:
         with st.spinner("Processing"):
             if st.session_state["upload"][0] == "file" and st.session_state["upload"][1] is not None:
-                st.session_state.raw_text = utils.get_pdf_text(
+                st.session_state.raw_text = utils.get_document_text(
                     st.session_state["upload"][1], page_range=pages
                 )
             elif st.session_state["upload"][0] == "youtube" and st.session_state["upload"][1] is not None:

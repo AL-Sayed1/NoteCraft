@@ -111,7 +111,7 @@ def handle_user_input(user_prompt):
 
 def main():
     utils.universal_setup(
-        page_title="Ask My PDF", page_icon="🔍", upload_file_types=["pdf"]
+        page_title="Ask My Document", page_icon="🔍", upload_file_types=["pdf", "docx", "pptx"]
     )
 
     if (
@@ -120,9 +120,9 @@ def main():
     ):
         st.write(
             """
-            this a chatbot that answers the students questions based on the provided document.
+            This is a chatbot that answers students' questions based on the provided document.
 
-            **How to use**: Just upload a PDF file, press process, and start asking questions right away!
+            **How to use**: Just upload a **PDF, Word, or PowerPoint file**, press process, and start asking questions right away!
             """
         )
     if "conversation" not in st.session_state:
@@ -136,7 +136,7 @@ def main():
             try:
                 with st.spinner("Processing"):
                     # Extract text from pdf
-                    raw_text = utils.get_pdf_text(
+                    raw_text = utils.get_document_text(
                         st.session_state["file"],
                         page_range=None,
                     )
