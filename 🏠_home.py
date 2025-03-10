@@ -63,9 +63,7 @@ def main():
                 cursor: pointer;
                 transition: color 0.3s;
             }
-            .more-info div:hover {
-                color: #ff4b4b;
-            }
+
             .more-info a {
                 text-decoration: none;
                 color: inherit;
@@ -83,15 +81,11 @@ def main():
                 padding: 20px;
             }
             .feature-link:hover {
-                color: #ff4b4b;
-                border-color: #ff4b4b;
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
                 text-decoration: none;
                 transform: scale(1.07);
             }
-            .feature-link:hover .feature-title, .feature-link:hover .feature-content {
-                color: #ff4b4b;
-            }
+
             .feature-title {
                 font-size: 2em;
                 margin-bottom: 20px;
