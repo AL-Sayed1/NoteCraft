@@ -21,7 +21,7 @@ sudo apt install tesseract-ocr poppler-utils wkhtmltopdf
 ### 3. Run the application:
 
 ```bash
-streamlit run 🏠_home.py
+streamlit run 🏠_Home.py
 ```
 
 ---

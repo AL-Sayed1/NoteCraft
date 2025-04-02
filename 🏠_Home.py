@@ -41,7 +41,7 @@ def main():
                 cursor: pointer;
                 transition: transform 0.3s;
                 width: 200px;
-                text-align: left;
+                text-align: center;
             }
             .info-box:hover {
                 transform: scale(1.1);
@@ -94,36 +94,46 @@ def main():
                 font-size: 1.2em;
                 text-align: left;
             }
+            .footer {
+                background-color: #31333f;
+                color: white;
+                padding: 20px;
+                text-align: center;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+            }
+
         </style>
     </head>
     <body>
         <div class="container">
-            <div class="header">NoteCraft, Your Study Companion, Powered by AI</div>
+            <div class="header"> Your Study Companion, Powered by AI</div>
             <div class="description">
-                NoteCraft is an AI-powered tool that can generates notes, and flashcards from any PDF! <br>
+                 NoteCraft is an AI-powered tool that generates notes and flashcards from any PDF, PPTX, and Word document! <br>
             </div>
             <div class="info-section">
                 <div class="info-box">
-                    <div class="info-title">AI-Powered 🤖</div>
+                    <div class="info-title">AI-Powered <div>🤖</div></div>
                     <div class="info-content">Leverage the power of AI to create accurate and concise notes.</div>
                 </div>
                 <div class="info-box">
-                    <div class="info-title">Easy to Use ✨</div>
-                    <div class="info-content">Simply upload your PDF and let NoteCraft do the rest.</div>
+                    <div class="info-title">Easy to Use <div>✨</div></div>
+                    <div class="info-content">Simply upload your document and let NoteCraft do the rest.</div>
                 </div>
                 <div class="info-box">
-                    <div class="info-title">Customizable ⚙️</div>
+                    <div class="info-title">Customizable <div>⚙️</div></div>
                     <div class="info-content">Tailor generated content to your needs.</div>
                 </div>
                 <div class="info-box">
-                    <div class="info-title">Save Time ⏳</div>
+                    <div class="info-title">Save Time <div>⏳</div></div>
                     <div class="info-content">Spend less time making notes and flashcards and more time studying.</div>
                 </div>
             </div>
             <a href="/Note_Generator" class="feature-link">
                 <div class="feature-title">Note Generator 📝</div>
                 <div class="feature-content">
-                    <p>Generate concise notes from your PDF content using AI! Just follow these simple steps:</p>
+                    <p>Generate concise notes from your PDF, PPTX, or Word content using AI! Just follow these simple steps:</p>
                     <ul>
                         <li>Upload your PDF</li>
                         <li>Select the desired note length</li>
@@ -134,7 +144,7 @@ def main():
             <a href="/Flashcard_Generator" class="feature-link">
                 <div class="feature-title">Flashcard Generator 📄</div>
                 <div class="feature-content">
-                    Generate flashcards from the content of your PDF using AI!
+                    Generate flashcards from the content of your PDF, PPTX, or Word document using AI!
                     you can choose:
                     <ul>
                         <li>Number of flashcards</li>
@@ -160,11 +170,11 @@ def main():
                     Can be exported as a HTML or PDF formats.
                 </div>
             </a>
-            <a href="/Ask_PDF" class="feature-link">
-                <div class="feature-title">Ask PDF 🤔</div>
+            <a href="/Ask_Documents" class="feature-link">
+                <div class="feature-title">Ask Documents 🤔</div>
                 <div class="feature-content">
-                    Ask PDF is a feature that allows you to ask questions about the content of your PDF and get answers using AI!
-                    Simply upload your PDF and ask your questions!
+                    Ask Documents is a feature that allows you to ask questions about the content of your PDF, PPTX, or Word document and get answers using AI!
+                    Simply upload your document and ask your questions!
                 </div>
             </a>
             <a href="/NoteCraft_Audible" class="feature-link">
@@ -173,13 +183,15 @@ def main():
                     NoteCraft Audible allows you to turn your PDF's into a podcast! Just upload your PDF and select the voice of the speaker and press process.
                 </div>
             </a>
-            <div class="more-info">
-                <div>Crafted by Sayed Hashim</div>
+            
+    </body>
+        <div class="more-info">
+                <div>Crafted by NCST students</div>
                 <div><a href="https://github.com/AL-Sayed1/NoteCraft" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg> View github code</a></div>
             </div>
         </div>
-    </body>
+   
     </html>
     """
 
