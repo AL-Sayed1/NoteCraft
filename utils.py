@@ -32,7 +32,7 @@ def universal_setup(
     )
     if page_title and page_title != "Home":
         st.header(f"NoteCraft AI - {page_title}")
-
+    st.logo(image="screenshots/logo three.png")
     st.session_state["cookies"] = EncryptedCookieManager(
         prefix=st.secrets["COOKIES_PREFIX"],
         password=st.secrets["COOKIES_PASSWORD"],
